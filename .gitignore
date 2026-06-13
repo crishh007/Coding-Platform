@@ -1,0 +1,22 @@
+# ⚠️ NEVER commit .env — it contains real secrets
+.env
+*.env
+.env.*
+
+# Compiled binaries
+auth-service-go
+*.exe
+*.out
+*.test
+
+# Go vendor
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
