@@ -15,7 +15,7 @@ JWT-based authentication service built with **Gin + GORM + PostgreSQL**.
 ### 1. Clone the repository
 ```bash
 git clone <repo-url>
-cd auth_service_go
+cd auth_service
 ```
 
 ### 2. Create your .env file
