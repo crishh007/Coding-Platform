@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Auth Service (Go)
 
 JWT-based authentication service built with **Gin + GORM + PostgreSQL**.
@@ -79,3 +80,6 @@ auth_service_go/
 ├── routes/       — route definitions
 └── utils/        — JWT and password helpers
 ```
+=======
+# Coding-Platform
+>>>>>>> fa81e1f3af1a276bb52b14cdc9a3d5bc8fee7291
