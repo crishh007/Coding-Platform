@@ -1,0 +1,12 @@
+# Environment — NEVER commit real secrets
+.env
+*.env
+
+# Binaries
+/auth-service-go
+/cmd/auth-service-go
+
+# Go toolchain
+vendor/
+*.test
+*.out
