@@ -1,0 +1,8 @@
+Sample Resume
+Name: John Doe
+Skills: Go, Python, React
+Experience:
+- Software Engineer at Tech Corp
+- Built REST APIs and scalable systems
+Education:
+- BS in Computer Science
