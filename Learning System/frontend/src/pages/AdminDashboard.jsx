@@ -3,6 +3,7 @@ import axios from 'axios';
 import CourseForm from '../components/admin/CourseForm';
 import TopicForm from '../components/admin/TopicForm';
 import LessonForm from '../components/admin/LessonForm';
+import PracticeProblemForm from '../components/admin/PracticeProblemForm';
 
 const AdminDashboard = () => {
   const [courses, setCourses] = useState([]);
@@ -28,12 +29,14 @@ const AdminDashboard = () => {
         <button onClick={() => setActiveTab('course')} style={tabStyle(activeTab === 'course')}>Add Course</button>
         <button onClick={() => setActiveTab('topic')} style={tabStyle(activeTab === 'topic')}>Add Topic</button>
         <button onClick={() => setActiveTab('lesson')} style={tabStyle(activeTab === 'lesson')}>Add Lesson</button>
+        <button onClick={() => setActiveTab('practice')} style={tabStyle(activeTab === 'practice')}>Add Practice Problem</button>
       </div>
 
       <div className="form-container" style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px' }}>
         {activeTab === 'course' && <CourseForm onAdded={fetchCourses} />}
         {activeTab === 'topic' && <TopicForm courses={courses} onAdded={fetchCourses} />}
         {activeTab === 'lesson' && <LessonForm courses={courses} onAdded={fetchCourses} />}
+        {activeTab === 'practice' && <PracticeProblemForm />}
       </div>
     </div>
   );

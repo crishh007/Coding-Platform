@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 import { 
   Home as HomeIcon,
   Compass, 
@@ -24,6 +25,7 @@ import client from '../../api/client';
 export default function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
   const [serverOnline, setServerOnline] = useState(false);
 
   // Admin/Developer Mode and Toggle visibility states
@@ -35,12 +37,20 @@ export default function Layout({ children }) {
   
   // Custom Toast State
   const [toastMessage, setToastMessage] = useState('');
+  
+  // Profile dropdown state
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const showToast = (message) => {
     setToastMessage(message);
     setTimeout(() => {
       setToastMessage('');
     }, 3000);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   useEffect(() => {
@@ -106,7 +116,7 @@ export default function Layout({ children }) {
         { label: 'Career Path', path: '/careers', icon: GraduationCap }
       ]
     },
-    { label: 'Practice', path: '/practice-dummy', icon: Code2, dummy: true },
+    { label: 'Practice', path: '/practice', icon: Code2 },
     { 
       label: 'Interview Prep', 
       icon: Briefcase,
@@ -115,12 +125,19 @@ export default function Layout({ children }) {
         { label: 'Specialized', path: '/interviews?mode=specialized', icon: Layers },
         { label: 'Simulations', path: '/interviews?mode=simulations', icon: Target }
       ]
-    },
-    { label: 'Projects', path: '/projects-dummy', icon: Layers, dummy: true },
-    { label: 'Community', path: '/community-dummy', icon: Users, dummy: true },
+    }
   ];
 
   const [hoveredNav, setHoveredNav] = useState(null);
+
+  const getInitials = (username) => {
+    if (!username) return 'U';
+    const parts = username.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return username.substring(0, 2).toUpperCase();
+  };
 
   return (
     <div className="app-container">
@@ -157,7 +174,7 @@ export default function Layout({ children }) {
           </div>
 
           {/* Center: Navigation Links */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <nav style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const hasSubItems = !!item.subItems;
@@ -445,25 +462,88 @@ export default function Layout({ children }) {
               </div>
             )}
 
-            {/* Profile Avatar Grid */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ 
-                width: '32px', 
-                height: '32px', 
-                borderRadius: '50%', 
-                background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)', 
-                border: '1px solid var(--border-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                color: '#fff',
-                cursor: 'pointer',
-                boxShadow: '0 0 10px rgba(139, 92, 246, 0.2)'
-              }} onClick={() => showToast('Profile settings are a showcase placeholder.')}>
-                CM
-              </div>
+            {/* Profile/Auth Actions */}
+            <div className="navbar-right" style={{ position: 'relative' }}>
+              {user ? (
+                <div>
+                  <div 
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--text-on-primary)',
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      border: '2px solid transparent',
+                      boxShadow: showProfileMenu ? '0 0 0 2px var(--primary)' : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {getInitials(user.username)}
+                  </div>
+                  
+                  {showProfileMenu && (
+                    <div 
+                      className="card"
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 10px)',
+                        right: 0,
+                        minWidth: '220px',
+                        padding: '1rem',
+                        zIndex: 1000,
+                        animation: 'fadeIn 0.2s ease-out forwards',
+                        boxShadow: 'var(--shadow-lg)'
+                      }}
+                    >
+                      <div style={{ paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.75rem' }}>
+                        <div style={{ fontWeight: 'bold', color: 'var(--text-main)', fontSize: '1rem' }}>{user.username || 'User'}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', opacity: 0.8, marginTop: '2px' }}>{user.email || 'No email provided'}</div>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', opacity: 0.9 }}>
+                          Role: <span style={{ color: 'var(--primary)', textTransform: 'capitalize', fontWeight: 'bold', opacity: 1 }}>{user.role || 'Student'}</span>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            handleLogout();
+                          }} 
+                          style={{ 
+                            marginTop: '0.5rem',
+                            padding: '0.5rem', 
+                            background: 'rgba(239, 68, 68, 0.1)', 
+                            border: '1px solid rgba(239, 68, 68, 0.3)', 
+                            borderRadius: 'var(--radius-sm)', 
+                            cursor: 'pointer', 
+                            color: 'var(--danger)',
+                            fontWeight: '600',
+                            width: '100%',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.2)'}
+                          onMouseLeave={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.1)'}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <Link to="/login" style={{ textDecoration: 'none', padding: '0.5rem 1rem', color: 'var(--text-secondary)' }}>Login</Link>
+                  <Link to="/register" style={{ textDecoration: 'none', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', borderRadius: 'var(--radius-sm)' }}>Sign Up</Link>
+                </div>
+              )}
             </div>
           </div>
         </header>
