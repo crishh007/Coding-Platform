@@ -1,0 +1,645 @@
+openapi: 3.1.0
+info:
+  title: ARENA API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /healthz:
+    get:
+      operationId: getHealth
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /contests:
+    get:
+      operationId: listContests
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of contests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contest"
+    post:
+      operationId: createContest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contest"
+  /contests/{id}:
+    get:
+      operationId: getContest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contest details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contest"
+    patch:
+      operationId: updateContest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contest"
+    delete:
+      operationId: deleteContest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+  /contests/{id}/register:
+    post:
+      operationId: registerForContest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                teamId:
+                  type: integer
+              required:
+                - userId
+      responses:
+        "200":
+          description: Registered
+  /contests/{id}/virtual:
+    post:
+      operationId: startVirtualParticipation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+              required:
+                - userId
+      responses:
+        "200":
+          description: Started
+  /contests/{id}/leaderboard:
+    get:
+      operationId: getContestLeaderboard
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+  /contests/{id}/problems:
+    get:
+      operationId: getContestProblems
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contest problems
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Problem"
+    post:
+      operationId: addProblemToContest
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                problemId:
+                  type: integer
+                contestOrder:
+                  type: integer
+                points:
+                  type: integer
+              required:
+                - problemId
+                - contestOrder
+      responses:
+        "200":
+          description: Added
+  /contests/{id}/violations:
+    get:
+      operationId: getContestViolations
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Violations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Violation"
+    post:
+      operationId: reportViolation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Violation"
+      responses:
+        "200":
+          description: Reported
+  /problems:
+    get:
+      operationId: listProblems
+      parameters:
+        - in: query
+          name: difficulty
+          schema:
+            type: string
+        - in: query
+          name: tag
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Problems
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Problem"
+    post:
+      operationId: createProblem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Problem"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /problems/{id}:
+    get:
+      operationId: getProblem
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Problem details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /submissions:
+    get:
+      operationId: listSubmissions
+      parameters:
+        - in: query
+          name: contestId
+          schema:
+            type: integer
+        - in: query
+          name: userId
+          schema:
+            type: integer
+        - in: query
+          name: problemId
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+    post:
+      operationId: createSubmission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Submission"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Submission"
+  /submissions/{id}:
+    get:
+      operationId: getSubmission
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Submission details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Submission"
+  /teams:
+    get:
+      operationId: listTeams
+      responses:
+        "200":
+          description: Teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+    post:
+      operationId: createTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTeamRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+  /teams/{id}:
+    get:
+      operationId: getTeam
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Team details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+  /teams/{id}/members:
+    post:
+      operationId: addTeamMember
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                role:
+                  type: string
+                  enum: [leader, member]
+              required:
+                - userId
+      responses:
+        "200":
+          description: Added
+  /users:
+    get:
+      operationId: listUsers
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+  /users/{id}:
+    get:
+      operationId: getUser
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /rankings:
+    get:
+      operationId: getRankings
+      responses:
+        "200":
+          description: Rankings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankingEntry"
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+components:
+  schemas:
+    Contest:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        status: { type: string, enum: [upcoming, active, ended] }
+        type: { type: string, enum: [individual, team] }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        duration: { type: integer }
+        participantCount: { type: integer }
+        maxParticipants: { type: integer, nullable: true }
+        problemCount: { type: integer }
+        difficulty: { type: string, enum: [beginner, intermediate, advanced, expert] }
+        tags: { type: array, items: { type: string } }
+        virtualAllowed: { type: boolean }
+        isRegistered: { type: boolean }
+        teamId: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+      required: [title, status, type, startTime, endTime, duration, participantCount, problemCount, difficulty, tags, virtualAllowed, createdAt]
+    Problem:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        difficulty: { type: string, enum: [easy, medium, hard] }
+        acceptanceRate: { type: number }
+        totalSubmissions: { type: integer }
+        timeLimit: { type: integer }
+        memoryLimit: { type: integer }
+        tags: { type: array, items: { type: string } }
+        contestOrder: { type: integer }
+        points: { type: integer }
+      required: [title, difficulty, acceptanceRate, totalSubmissions, timeLimit, memoryLimit, tags]
+    Submission:
+      type: object
+      properties:
+        id: { type: integer }
+        problemId: { type: integer }
+        contestId: { type: integer, nullable: true }
+        userId: { type: integer }
+        username: { type: string }
+        language: { type: string }
+        code: { type: string }
+        status: { type: string, enum: [pending, accepted, wrong_answer, time_limit_exceeded, memory_limit_exceeded, runtime_error, compilation_error] }
+        executionTime: { type: integer, nullable: true }
+        memoryUsed: { type: integer, nullable: true }
+        score: { type: integer, nullable: true }
+        isVirtual: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [problemId, userId, language, code, status, isVirtual, createdAt]
+    CreateTeamRequest:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string, nullable: true }
+        maxMembers: { type: integer, default: 4 }
+      required: [name]
+    Team:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        memberCount: { type: integer }
+        maxMembers: { type: integer }
+        rating: { type: integer }
+        rank: { type: integer }
+        contestsWon: { type: integer }
+        totalContests: { type: integer }
+        members: { type: array, items: { $ref: "#/components/schemas/TeamMember" } }
+        createdAt: { type: string, format: date-time }
+      required: [name, memberCount, maxMembers, rating, rank, contestsWon, totalContests, createdAt]
+    TeamMember:
+      type: object
+      properties:
+        userId: { type: integer }
+        username: { type: string }
+        role: { type: string, enum: [leader, member] }
+        rating: { type: integer }
+      required: [userId, username, role, rating]
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        displayName: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        rating: { type: integer }
+        maxRating: { type: integer }
+        rank: { type: integer }
+        tier: { type: string, enum: [newbie, pupil, specialist, expert, candidate_master, master, grandmaster, legendary] }
+        contestsParticipated: { type: integer }
+        problemsSolved: { type: integer }
+        totalSubmissions: { type: integer }
+        acceptanceRate: { type: number }
+        country: { type: string, nullable: true }
+        teamId: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+      required: [username, rating, maxRating, rank, tier, contestsParticipated, problemsSolved, totalSubmissions, acceptanceRate, createdAt]
+    Violation:
+      type: object
+      properties:
+        id: { type: integer }
+        contestId: { type: integer }
+        userId: { type: integer }
+        username: { type: string }
+        type: { type: string }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        description: { type: string, nullable: true }
+        status: { type: string, enum: [pending, reviewed, dismissed, confirmed] }
+        detectedAt: { type: string, format: date-time }
+      required: [contestId, userId, username, type, severity, status, detectedAt]
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank: { type: integer }
+        userId: { type: integer }
+        username: { type: string }
+        score: { type: integer }
+        penalty: { type: integer }
+        isVirtual: { type: boolean }
+        tier: { type: string }
+        teamName: { type: string, nullable: true }
+        problemResults:
+          type: array
+          items:
+            type: object
+            properties:
+              problemId: { type: integer }
+              status: { type: string }
+              attempts: { type: integer }
+              score: { type: integer }
+            required: [problemId, status, attempts, score]
+      required: [rank, userId, username, score, penalty, isVirtual, tier, problemResults]
+    RankingEntry:
+      type: object
+      properties:
+        rank: { type: integer }
+        userId: { type: integer }
+        username: { type: string }
+        rating: { type: integer }
+        maxRating: { type: integer }
+        tier: { type: string }
+        contestsParticipated: { type: integer }
+        problemsSolved: { type: integer }
+        country: { type: string, nullable: true }
+        ratingChange: { type: integer }
+      required: [rank, userId, username, rating, maxRating, tier, contestsParticipated, problemsSolved, ratingChange]
+    DashboardStats:
+      type: object
+      properties:
+        activeContests: { type: integer }
+        upcomingContests: { type: integer }
+        totalUsers: { type: integer }
+        totalSubmissions: { type: integer }
+        onlineUsers: { type: integer }
+        recentSubmissions: { type: array, items: { $ref: "#/components/schemas/Submission" } }
+        topRankedUsers: { type: array, items: { $ref: "#/components/schemas/RankingEntry" } }
+      required: [activeContests, upcomingContests, totalUsers, totalSubmissions, onlineUsers, recentSubmissions, topRankedUsers]
