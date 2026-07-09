@@ -1,0 +1,62 @@
+# Refactor StudyPage.jsx
+
+The `StudyPage.jsx` component has grown to nearly 3,000 lines of code. It currently handles UI layout, API fetching, heavy simulation logic, complex state management, and contains hardcoded algorithm configurations.
+
+## Proposed Architecture Changes
+
+I propose breaking down this massive monolith into a modular directory structure under `src/pages/Study/` and extracting utility functions and hardcoded data into separate files.
+
+### 1. Extract Hardcoded Data & Logic
+- **`src/utils/studyConstants.js`**: Move `PSEUDOCODE_MAP`, `getPseudocodeLines`, `getPracticeTemplate`, and `getComplexityString` out of the component.
+- **`src/utils/simulationEngine.js`**: Extract the massive `useEffect` block (lines 560-890) that generates simulation steps for `binary-search`, `linear-search`, etc., into pure functions (e.g., `generateBinarySearchSteps(array, target)`). This will make the simulation logic testable and decoupled from React state.
+
+### 2. Component Sub-division
+We will create a new directory `src/pages/Study/` to replace the single file:
+
+- **`index.jsx` (Container)**: Will manage only the top-level state (like `activeTab`, `selectedLesson`, data fetching) and render the layout grid.
+- **`Sidebar.jsx`**: Handles the course navigation tree and search.
+- **`RightSidebar.jsx`**: Handles the AI Tutor chat, notes, and related widgets.
+- **`Tabs/` Directory**:
+  - `OverviewTab.jsx`
+  - `VisualSimulatorTab.jsx` (will handle its own playback state `isPlaying`, `playSpeed`, `simStepIndex`)
+  - `CodeSandboxTab.jsx`
+  - `QuizTab.jsx`
+  - `PracticeTab.jsx`
+
+## User Review Required
+
+> [!WARNING]
+> This is a major architectural refactor. While it will not change the visual appearance or functionality of the page, it will involve rewriting a significant portion of the frontend's file structure. 
+
+## Open Questions
+
+> [!IMPORTANT]
+> 1. Do you want me to proceed with this full refactoring?
+> 2. Should we move the hardcoded simulation logic (like the binary search steps) into the MongoDB database eventually, or is it okay to keep it hardcoded in a `simulationEngine.js` utility file for now?
+
+## Proposed Changes
+
+#### [DELETE] `src/pages/StudyPage.jsx`
+#### [NEW] `src/pages/Study/index.jsx`
+#### [NEW] `src/pages/Study/Sidebar.jsx`
+#### [NEW] `src/pages/Study/RightSidebar.jsx`
+#### [NEW] `src/pages/Study/Tabs/OverviewTab.jsx`
+#### [NEW] `src/pages/Study/Tabs/VisualSimulatorTab.jsx`
+#### [NEW] `src/pages/Study/Tabs/CodeSandboxTab.jsx`
+#### [NEW] `src/pages/Study/Tabs/QuizTab.jsx`
+#### [NEW] `src/pages/Study/Tabs/PracticeTab.jsx`
+#### [NEW] `src/utils/studyConstants.js`
+#### [NEW] `src/utils/simulationEngine.js`
+
+## Future Considerations for Scalability
+
+When scaling to 2,000+ topics, hardcoding simulation logic in the frontend is not maintainable. We will need to transition the simulation engine to be fully dynamic using one of these approaches:
+1. **Database-Driven Configuration**: Store simulation rules, pseudocode, and state-change logic as JSON inside the MongoDB `Lesson` schema. The frontend becomes a "dumb" player that just reads these rules from the backend.
+2. **Auto-Tracer (WASM)**: Store actual source code in the database and use a lightweight WebAssembly compiler in the browser to run the code and automatically trace variable changes (similar to PythonTutor).
+
+## Verification Plan
+
+### Manual Verification
+- After the refactor, I will start the Vite dev server and ensure the Study Page loads correctly.
+- I will verify that the Visual Simulation still correctly plays binary search steps.
+- I will verify that switching tabs, interacting with the AI tutor, and taking quizzes still work as expected.
