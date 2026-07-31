@@ -202,7 +202,7 @@ export default function ProblemWorkspace() {
     const stored = JSON.parse(localStorage.getItem(`submissions_${id}`) || '[]');
     setSubmissions(stored);
   }, [id, contestId]);
-
+  useEffect(() => {
     if (timeLeft !== null && timeLeft > 0) {
       const timer = setInterval(() => setTimeLeft((p) => (p > 0 ? p - 1 : 0)), 1000);
       return () => clearInterval(timer);
