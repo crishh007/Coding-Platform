@@ -210,30 +210,62 @@ export default function ProblemWorkspace() {
     }
   }, [timeLeft]);
 
-  // Load last submission into editor on mount
+  // Load draft or last submission into editor on mount/navigation
   useEffect(() => {
-    if (submissions.length > 0 && problem) {
-      const last = submissions[0];
-      const currentStorageKey = contestId ? `submissions_${contestId}_${id}` : `submissions_${id}`;
-      if (last.code && window.loadedCodeFor !== currentStorageKey) {
-        window.loadedCodeFor = currentStorageKey;
-        setLanguage(last.language || 'python');
-        setCodeMap(prev => ({ ...prev, [last.language || 'python']: last.code }));
-        
-        if (last.passed !== undefined && last.total !== undefined) {
-          setSubmitResult({
-             status: last.status,
-             timeMs: parseInt(last.time) || 0,
-             passed: last.passed,
-             total: last.total,
-             results: [],
-             error: ''
-          });
-          setShowSubmitModal(true);
+    if (!problem) return;
+    
+    const draftKey = contestId ? `draft_${contestId}_${id}` : `draft_practice_${id}`;
+    const storageKey = contestId ? `submissions_${contestId}_${id}` : `submissions_${id}`;
+    
+    if (window.loadedCodeFor !== draftKey) {
+      window.loadedCodeFor = draftKey;
+      
+      const storedDraft = localStorage.getItem(draftKey);
+      if (storedDraft) {
+        try {
+          const parsed = JSON.parse(storedDraft);
+          setCodeMap(parsed);
+          
+          // Try to restore language from submissions if available, or just keep python
+          const storedSubs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+          if (storedSubs.length > 0 && storedSubs[0].language) {
+            setLanguage(storedSubs[0].language);
+          }
+        } catch (e) {}
+      } else {
+        // Fallback to last submission if no draft
+        const storedSubs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        if (storedSubs.length > 0 && storedSubs[0].code) {
+          const last = storedSubs[0];
+          setLanguage(last.language || 'python');
+          setCodeMap(prev => ({ ...prev, [last.language || 'python']: last.code }));
+          
+          if (last.passed !== undefined && last.total !== undefined) {
+            setSubmitResult({
+               status: last.status,
+               timeMs: parseInt(last.time) || 0,
+               passed: last.passed,
+               total: last.total,
+               results: [],
+               error: ''
+            });
+            setShowSubmitModal(true);
+          }
+        } else {
+          // Fallback to templates
+          setCodeMap({ ...TEMPLATES });
         }
       }
     }
-  }, [submissions, problem, id, contestId]);
+  }, [problem, id, contestId]);
+
+  // Auto-save on every keystroke
+  useEffect(() => {
+    if (codeMap) {
+      const draftKey = contestId ? `draft_${contestId}_${id}` : `draft_practice_${id}`;
+      localStorage.setItem(draftKey, JSON.stringify(codeMap));
+    }
+  }, [codeMap, id, contestId]);
 
   const isLocked = timeLeft === 0 && contestId;
 
