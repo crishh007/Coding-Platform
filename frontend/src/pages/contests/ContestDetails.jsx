@@ -40,11 +40,21 @@ export default function ContestDetails() {
   useEffect(() => {
     if (timeLeft !== null && timeLeft > 0) {
       const timer = setInterval(() => {
-        setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            // Timer hit zero! Transition contest to active state.
+            setContest(c => ({ ...c, status: 'active' }));
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
       return () => clearInterval(timer);
+    } else if (timeLeft === 0 && contest?.status === 'upcoming') {
+      // Just in case it mounts exactly at 0
+      setContest(c => ({ ...c, status: 'active' }));
     }
-  }, [timeLeft]);
+  }, [timeLeft, contest?.status]);
 
   const formatTime = (totalSeconds) => {
     if (totalSeconds === null) return '--:--:--';
