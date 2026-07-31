@@ -241,15 +241,15 @@ export default function ContestArena() {
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                       <div style={{ textAlign: 'right' }}>
-                        {solvedData && solvedData.solved ? (
+                        {isSolved ? (
                           <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <CheckCircle size={16} /> <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>Solved ({solvedData.gainedPoints}/{prob.points})</span>
+                            <CheckCircle size={16} /> <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>Solved ({gained}/{prob.points})</span>
                           </div>
                         ) : (
                           <>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Gained</div>
-                            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: solvedData?.gainedPoints > 0 ? '#f59e0b' : 'var(--text-main)' }}>
-                              {solvedData?.gainedPoints || 0} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ {prob.points}</span>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: gained > 0 ? '#f59e0b' : 'var(--text-main)' }}>
+                              {gained} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ {prob.points}</span>
                             </div>
                           </>
                         )}
