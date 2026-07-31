@@ -10,7 +10,10 @@ export default function ContestDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(() => {
+    const registered = JSON.parse(localStorage.getItem('registeredContests') || '[]');
+    return registered.includes(id);
+  });
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -54,8 +57,13 @@ export default function ContestDetails() {
   };
 
   const handleRegister = async () => {
-    // In a real app, you would make an API call here to register the user
-    // await client.post(`/contests/${id}/register`);
+    // In a full backend implementation, this would be an API call.
+    // For now, we persist the registration state in localStorage.
+    const registered = JSON.parse(localStorage.getItem('registeredContests') || '[]');
+    if (!registered.includes(id)) {
+      registered.push(id);
+      localStorage.setItem('registeredContests', JSON.stringify(registered));
+    }
     setIsRegistered(true);
   };
 

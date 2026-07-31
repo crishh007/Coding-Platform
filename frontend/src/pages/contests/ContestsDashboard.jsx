@@ -38,6 +38,10 @@ function ContestsDashboard() {
   const [violations, setViolations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Track registrations from localStorage (persists across page loads)
+  const [registeredContests, setRegisteredContests] = useState([]);
+
   const [showCreateModal, setShowCreateModal] = useState(() => {
     return sessionStorage.getItem('showContestDraft') === 'true';
   });
@@ -128,12 +132,17 @@ function ContestsDashboard() {
       try {
         const results = await Promise.allSettled([
           client.get('/contests'),
-          client.get('/leaderboard/global'),
           client.get('/teams'),
-          client.get('/violations')
+          client.get('/violations'),
+          client.get('/leaderboard/global'),
+          client.get('/progress/status')
         ]);
 
-        const [contestsRes, leaderboardRes, teamsRes, violationsRes] = results;
+        // Load registrations
+        const savedRegistrations = JSON.parse(localStorage.getItem('registeredContests') || '[]');
+        setRegisteredContests(savedRegistrations);
+
+        const [contestsRes, teamsRes, violationsRes, leaderboardRes] = results;
 
         if (contestsRes.status === 'fulfilled' && contestsRes.value?.data) {
           setUpcomingContests(contestsRes.value.data.upcoming || []);
@@ -390,13 +399,24 @@ function ContestsDashboard() {
                           <Trash2 size={16} />
                         </button>
                       )}
-                      <button 
-                        className="pr-btn primary" 
-                        style={{ flex: 1, justifyContent: 'center' }}
-                        onClick={() => navigate(`/contests/${c.id}`)}
-                      >
-                        View Details
-                      </button>
+                      
+                      {registeredContests.includes(c.id) ? (
+                        <button 
+                          className="pr-btn primary" 
+                          style={{ flex: 1, justifyContent: 'center', background: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                          onClick={() => navigate(`/contests/${c.id}`)}
+                        >
+                          Registered
+                        </button>
+                      ) : (
+                        <button 
+                          className="pr-btn primary" 
+                          style={{ flex: 1, justifyContent: 'center' }}
+                          onClick={() => navigate(`/contests/${c.id}`)}
+                        >
+                          View Details
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
