@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Trophy, Clock, AlertTriangle, ChevronLeft, ArrowRight, Activity } from 'lucide-react';
+import { Trophy, Clock, AlertTriangle, ChevronLeft, ArrowRight, Activity, CheckCircle, Code, Shield, Award } from 'lucide-react';
 import client from '../../api/client';
 
 export default function ContestArena() {
@@ -8,16 +8,24 @@ export default function ContestArena() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('problems');
 
-  // Dummy data for a contest
   const [contest, setContest] = useState({
     id,
-    title: `Loading...`,
+    title: `Loading Arena...`,
+    description: '',
     timeRemaining: '--:--',
     problems: [],
-    leaderboard: []
+    leaderboard: [],
+    status: 'active'
   });
-  const [timeLeft, setTimeLeft] = useState(null);
   
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Mocking "Gained Points" and "Solved Status" for demonstration.
+  // In a real app, this would come from a submissions/user-progress API.
+  const [solvedProblems, setSolvedProblems] = useState({});
+
   useEffect(() => {
     client.get(`/contests/${id}`)
       .then(res => {
@@ -28,9 +36,26 @@ export default function ContestArena() {
             const now = new Date().getTime();
             setTimeLeft(Math.max(0, Math.floor((end - now) / 1000)));
           }
+          
+          // Mock data: Randomly mark a problem as solved for UI demonstration
+          if (res.data.problems && res.data.problems.length > 0) {
+            const mockedSolved = {};
+            // Just marking the first one as solved if it exists to show the UI
+            if (res.data.problems.length > 1) {
+              mockedSolved[res.data.problems[0].problemId] = {
+                solved: true,
+                gainedPoints: res.data.problems[0].points
+              };
+            }
+            setSolvedProblems(mockedSolved);
+          }
         }
       })
-      .catch(err => console.error("Failed to fetch contest:", err));
+      .catch(err => {
+        console.error("Failed to fetch contest:", err);
+        setError("Failed to load contest arena.");
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {
@@ -51,138 +76,230 @@ export default function ContestArena() {
   };
 
   const getDifficultyColor = (diff) => {
-    switch(diff) {
-      case 'Easy': return '#10b981';
-      case 'Medium': return '#f59e0b';
-      case 'Hard': return '#ef4444';
+    switch(diff?.toLowerCase()) {
+      case 'easy': return '#10b981';
+      case 'medium': return '#f59e0b';
+      case 'hard': return '#ef4444';
       default: return 'var(--text-main)';
     }
   };
 
+  // Calculate total points
+  const totalMaxPoints = contest.problems?.reduce((sum, p) => sum + (p.points || 0), 0) || 0;
+  const totalGainedPoints = Object.values(solvedProblems).reduce((sum, s) => sum + (s.gainedPoints || 0), 0);
+
+  if (loading) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>Entering Arena...</div>;
+  if (error) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--error)' }}>{error}</div>;
+
   return (
-    <div className="page-container" style={{ maxWidth: '1200px' }}>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>
+      {/* Premium Header */}
+      <div className="card glass-panel" style={{ marginBottom: '2rem', padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '2px solid var(--primary)' }}>
         <div>
           <button 
-            className="pr-btn-icon" 
-            style={{ marginBottom: '1rem' }}
+            className="pr-btn-icon hover-scale" 
+            style={{ padding: 0, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', background: 'none', border: 'none', fontSize: '0.9rem', cursor: 'pointer' }}
             onClick={() => navigate('/contests')}
           >
-            <ChevronLeft size={20} /> Back to Contests
+            <ChevronLeft size={16} /> Exit Arena
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1 className="page-title" style={{ margin: 0 }}>{contest.title}</h1>
-            <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.9rem', padding: '0.35rem 0.75rem' }}>
-              <Clock size={16} /> {timeLeft === 0 ? 'Ended' : formatTime(timeLeft)}
-            </span>
+          <h1 style={{ margin: 0, fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: timeLeft === 0 ? 'var(--text-secondary)' : 'var(--error)', animation: timeLeft > 0 ? 'pulse 2s infinite' : 'none' }}></div>
+            {contest.title}
+          </h1>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Your Score</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)' }}>
+              {totalGainedPoints} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ {totalMaxPoints}</span>
+            </div>
+          </div>
+          <div style={{ width: '1px', height: '40px', background: 'var(--border-color)' }}></div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>{timeLeft === 0 ? 'Contest Ended' : 'Time Remaining'}</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'monospace', color: timeLeft === 0 ? 'var(--text-secondary)' : 'var(--text-main)', letterSpacing: '1px' }}>
+              {formatTime(timeLeft)}
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
-        <button 
-          onClick={() => setActiveTab('problems')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            background: activeTab === 'problems' ? 'var(--primary)' : 'transparent',
-            color: activeTab === 'problems' ? 'var(--text-main)' : 'var(--text-secondary)',
-            border: 'none',
-            borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
-        >
-          <Trophy size={18} /> Problems
-        </button>
-        <button 
-          onClick={() => setActiveTab('leaderboard')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            background: activeTab === 'leaderboard' ? 'var(--primary)' : 'transparent',
-            color: activeTab === 'leaderboard' ? 'var(--text-main)' : 'var(--text-secondary)',
-            border: 'none',
-            borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
-        >
-          <Activity size={18} /> Live Leaderboard
-        </button>
-      </div>
-
-      {activeTab === 'problems' && (
-        <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="card" style={{ background: 'rgba(245, 158, 11, 0.05)', borderColor: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
-            <AlertTriangle color="#f59e0b" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
-            <div>
-              <h4 style={{ margin: '0 0 0.5rem 0', color: '#f59e0b' }}>Contest Rules</h4>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                You have {timeLeft === 0 ? '00:00' : formatTime(timeLeft)} left. Submitting a wrong answer incurs a 5-minute penalty. Your score is based on the points of problems solved. Ties are broken by total time penalty.
-              </p>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+        
+        {/* Left Column: Main Content */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          {/* Navigation Tabs */}
+          <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+            <button 
+              onClick={() => setActiveTab('problems')}
+              style={{ padding: '0.5rem 1rem', background: 'transparent', border: 'none', color: activeTab === 'problems' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: activeTab === 'problems' ? 700 : 500, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}
+            >
+              <Code size={20} /> Problems
+              {activeTab === 'problems' && <div style={{ position: 'absolute', bottom: '-0.6rem', left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '3px 3px 0 0' }}></div>}
+            </button>
+            <button 
+              onClick={() => setActiveTab('leaderboard')}
+              style={{ padding: '0.5rem 1rem', background: 'transparent', border: 'none', color: activeTab === 'leaderboard' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: activeTab === 'leaderboard' ? 700 : 500, fontSize: '1.1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}
+            >
+              <Activity size={20} /> Live Leaderboard
+              {activeTab === 'leaderboard' && <div style={{ position: 'absolute', bottom: '-0.6rem', left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '3px 3px 0 0' }}></div>}
+            </button>
           </div>
 
-          {contest.problems && contest.problems.map(prob => (
-            <div key={prob.id} className="card hover-scale" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', cursor: 'pointer' }} onClick={() => navigate(`/practice/problems/two-sum?contestId=${contest.id}`)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--border-color)' }}>
-                  {prob.id}
-                </div>
-                <div>
-                  <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.1rem' }}>{prob.title}</h3>
-                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
-                    <span style={{ color: getDifficultyColor(prob.difficulty), fontWeight: 600 }}>{prob.difficulty}</span>
-                    <span style={{ color: 'var(--text-secondary)' }}>{prob.points} Points</span>
+          {/* Tab Content */}
+          {activeTab === 'problems' && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {contest.problems && contest.problems.length > 0 ? contest.problems.map((prob, idx) => {
+                const isSolved = solvedProblems[prob.problemId]?.solved;
+                const gained = isSolved ? solvedProblems[prob.problemId].gainedPoints : 0;
+                
+                return (
+                  <div key={prob.problemId || idx} className="card hover-scale" style={{ 
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', cursor: 'pointer', 
+                    border: isSolved ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)',
+                    background: isSolved ? 'rgba(16, 185, 129, 0.02)' : 'var(--box-bg)',
+                    position: 'relative', overflow: 'hidden'
+                  }} onClick={() => navigate(`/practice/problems/${prob.problemId || 'two-sum'}?contestId=${contest.id}`)}>
+                    
+                    {/* Solved Progress Bar Background */}
+                    {isSolved && <div style={{ position: 'absolute', bottom: 0, left: 0, height: '3px', background: 'var(--success)', width: '100%' }}></div>}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                      <div style={{ 
+                        width: '45px', height: '45px', borderRadius: '12px', 
+                        background: isSolved ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)', 
+                        color: isSolved ? 'var(--success)' : 'var(--text-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 800 
+                      }}>
+                        {String.fromCharCode(65 + idx)}
+                      </div>
+                      
+                      <div>
+                        <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {prob.title}
+                          {isSolved && <CheckCircle size={18} color="var(--success)" />}
+                        </h3>
+                        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem' }}>
+                          <span style={{ color: getDifficultyColor(prob.difficulty), fontWeight: 600 }}>{prob.difficulty || 'Standard'}</span>
+                          <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Award size={14} /> Max {prob.points} Pts
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Gained</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: isSolved ? 'var(--success)' : 'var(--text-main)' }}>
+                          {gained} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ {prob.points}</span>
+                        </div>
+                      </div>
+                      <button className={`pr-btn ${isSolved ? '' : 'primary'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', background: isSolved ? 'rgba(255,255,255,0.05)' : 'var(--primary)' }}>
+                        {isSolved ? 'Review' : 'Solve'} <ArrowRight size={16} />
+                      </button>
+                    </div>
                   </div>
+                );
+              }) : (
+                <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
+                  No problems have been added to this contest yet.
                 </div>
-              </div>
-              
-              <button className="pr-btn primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                Solve <ArrowRight size={16} />
-              </button>
+              )}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {activeTab === 'leaderboard' && (
-        <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'var(--box-bg)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                <th style={{ padding: '1rem 1.5rem', width: '80px' }}>Rank</th>
-                <th style={{ padding: '1rem 1.5rem' }}>User</th>
-                <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>Score</th>
-                <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>Penalty</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contest.leaderboard && contest.leaderboard.map((user) => (
-                <tr key={user.handle} style={{ borderBottom: '1px solid var(--border-color)' }} className="hover:bg-box-bg">
-                  <td style={{ padding: '1rem 1.5rem', fontWeight: 800, fontSize: '1.1rem', color: user.rank <= 3 ? '#eab308' : 'var(--text-secondary)' }}>
-                    #{user.rank}
-                  </td>
-                  <td style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                    @{user.handle}
-                  </td>
-                  <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>
-                    {user.score}
-                  </td>
-                  <td style={{ padding: '1rem 1.5rem', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
-                    {user.penalty}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {activeTab === 'leaderboard' && (
+            <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.02)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <th style={{ padding: '1.25rem 1.5rem', width: '80px' }}>Rank</th>
+                    <th style={{ padding: '1.25rem 1.5rem' }}>User</th>
+                    <th style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>Score</th>
+                    <th style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>Penalty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contest.leaderboard && contest.leaderboard.length > 0 ? contest.leaderboard.map((user) => (
+                    <tr key={user.handle} style={{ borderBottom: '1px solid var(--border-color)' }} className="hover:bg-box-bg">
+                      <td style={{ padding: '1.25rem 1.5rem', fontWeight: 800, fontSize: '1.1rem', color: user.rank <= 3 ? '#eab308' : 'var(--text-secondary)' }}>
+                        #{user.rank}
+                      </td>
+                      <td style={{ padding: '1.25rem 1.5rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                        @{user.handle}
+                      </td>
+                      <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right', fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>
+                        {user.score}
+                      </td>
+                      <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+                        {user.penalty}
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        Leaderboard is empty. Be the first to solve a problem!
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Right Column: Sidebar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          <div className="card glass-panel" style={{ padding: '1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--error)', fontSize: '1.1rem' }}>
+              <Shield size={20} /> Strict Anti-Cheat Active
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              Your session is being monitored. Navigating away from the arena tab, pasting large blocks of code, or disabling your network will instantly flag your submission for review.
+            </p>
+          </div>
+
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 1.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>
+              <AlertTriangle size={20} color="var(--primary)" /> Contest Rules
+            </h3>
+            <ul style={{ paddingLeft: '1.2rem', margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <li>Submitting a wrong answer incurs a <strong>5-minute time penalty</strong>.</li>
+              <li>Your total score is the sum of points from all solved problems.</li>
+              <li>Ties on the leaderboard are broken by the lowest total time penalty.</li>
+              <li>Code execution time limits are strictly enforced. Optimize your logic!</li>
+            </ul>
+          </div>
+
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem' }}>Contest Info</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Type</span>
+                <span style={{ fontWeight: 600 }}>{contest.type || 'Custom'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Difficulty</span>
+                <span style={{ fontWeight: 600 }}>{contest.difficulty || 'Mixed'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Duration</span>
+                <span style={{ fontWeight: 600 }}>{contest.duration} mins</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Total Problems</span>
+                <span style={{ fontWeight: 600 }}>{contest.problems?.length || 0}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 }
