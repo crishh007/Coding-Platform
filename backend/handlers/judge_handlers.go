@@ -355,11 +355,7 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 					}
-					secret := os.Getenv("JWT_SECRET")
-					if secret == "" {
-						secret = "super-secret-key-for-development"
-					}
-					return []byte(secret), nil
+					return []byte("my_secret_key_change_me"), nil
 				})
 				if err != nil {
 					fmt.Println("JWT Parse Error in Judge:", err)

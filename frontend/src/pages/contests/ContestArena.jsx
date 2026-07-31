@@ -64,7 +64,7 @@ export default function ContestArena() {
                 if (userEntry.solvedProblems[p.problemId] !== undefined) {
                    const maxScore = userEntry.solvedProblems[p.problemId];
                    solvedMap[p.problemId] = { 
-                       solved: maxScore === p.points, // Only fully solved if max score == points
+                       solved: maxScore > 0, // Mark as solved if ANY points are gained
                        gainedPoints: maxScore 
                    };
                 }
@@ -241,10 +241,18 @@ export default function ContestArena() {
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Gained</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: isSolved ? 'var(--success)' : gained > 0 ? '#f59e0b' : 'var(--text-main)' }}>
-                          {gained} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ {prob.points}</span>
-                        </div>
+                        {solvedData && solvedData.solved ? (
+                          <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <CheckCircle size={16} /> <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>Solved ({solvedData.gainedPoints}/{prob.points})</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Gained</div>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: solvedData?.gainedPoints > 0 ? '#f59e0b' : 'var(--text-main)' }}>
+                              {solvedData?.gainedPoints || 0} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ {prob.points}</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                       <button className={`pr-btn ${isSolved ? '' : 'primary'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', background: isSolved ? 'rgba(255,255,255,0.05)' : 'var(--primary)' }}>
                         {isSolved ? 'Review' : 'Solve'} <ArrowRight size={16} />
