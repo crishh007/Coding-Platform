@@ -27,34 +27,42 @@ function ContestsDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('contests'); // 'contests' or 'leaderboard'
   
-  // Dummy Data for now, will connect to backend later
-  const upcomingContests = [
-    { id: '101', title: 'Weekly Contest 101', date: 'Oct 28, 2026', time: '10:00 AM PST', duration: '90 mins', participants: 1245 },
-    { id: '102', title: 'Biweekly Contest 45', date: 'Nov 2, 2026', time: '08:00 AM PST', duration: '90 mins', participants: 890 }
-  ];
+  const [upcomingContests, setUpcomingContests] = useState([]);
+  const [pastContests, setPastContests] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [violations, setViolations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const pastContests = [
-    { id: '100', title: 'Weekly Contest 100', date: 'Oct 21, 2026', participants: 1540 },
-    { id: '99', title: 'Weekly Contest 99', date: 'Oct 14, 2026', participants: 1420 }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [contestsRes, leaderboardRes, teamsRes, violationsRes] = await Promise.all([
+          client.get('/contests'),
+          client.get('/leaderboard/global'),
+          client.get('/teams'),
+          client.get('/violations')
+        ]);
 
-  const leaderboard = [
-    { rank: 1, name: 'Alex Johnson', handle: 'alexj', rating: 2845, solveCount: 452, tier: 'Grandmaster' },
-    { rank: 2, name: 'Sarah Wu', handle: 'swu99', rating: 2790, solveCount: 410, tier: 'Master' },
-    { rank: 3, name: 'David Chen', handle: 'dchen', rating: 2650, solveCount: 389, tier: 'Master' },
-    { rank: 4, name: 'Emily Taylor', handle: 'etaylor', rating: 2540, solveCount: 350, tier: 'Candidate Master' },
-    { rank: 5, name: 'Michael Brown', handle: 'mbrown', rating: 2480, solveCount: 320, tier: 'Candidate Master' },
-  ];
-
-  const teams = [
-    { id: '1', name: 'Code Wizards', members: 4, rating: 2500, contestsWon: 3 },
-    { id: '2', name: 'Binary Bosses', members: 5, rating: 2400, contestsWon: 1 }
-  ];
-
-  const violations = [
-    { id: 'v1', user: 'johndoe', type: 'Plagiarism', severity: 'High', status: 'Pending' },
-    { id: 'v2', user: 'janedoe', type: 'Multiple IPs', severity: 'Medium', status: 'Resolved' }
-  ];
+        if (contestsRes.data?.data) {
+          setUpcomingContests(contestsRes.data.data.upcoming || []);
+          setPastContests(contestsRes.data.data.past || []);
+        }
+        if (leaderboardRes.data?.data) setLeaderboard(leaderboardRes.data.data);
+        if (teamsRes.data?.data) setTeams(teamsRes.data.data);
+        if (violationsRes.data?.data) setViolations(violationsRes.data.data);
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+        setError("Failed to load dashboard data. Please make sure you are logged in.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const getRankColor = (rank) => {
     if (rank === 1) return '#eab308'; // Gold
@@ -182,7 +190,10 @@ function ContestsDashboard() {
       </div>
 
       <div className="page-content">
-        {activeTab === 'contests' && (
+        {loading && <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading dashboard data...</div>}
+        {error && <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--error)', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px' }}>{error}</div>}
+        
+        {!loading && !error && activeTab === 'contests' && (
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Upcoming Contests */}
             <div>
@@ -199,13 +210,13 @@ function ContestsDashboard() {
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Calendar size={16} /> {c.date} at {c.time}
+                        <Calendar size={16} /> {new Date(c.startTime).toLocaleDateString()} at {new Date(c.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Clock size={16} /> {c.duration}
+                        <Clock size={16} /> {c.duration} mins
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Users size={16} /> {c.participants} Registered
+                        <Users size={16} /> {c.maxParticipants} Registered
                       </div>
                     </div>
                     
@@ -232,8 +243,8 @@ function ContestsDashboard() {
                     <div>
                       <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{c.title}</h4>
                       <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Calendar size={14}/> {c.date}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Users size={14}/> {c.participants} Participants</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Calendar size={14}/> {new Date(c.startTime).toLocaleDateString()}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Users size={14}/> {c.maxParticipants} Participants</span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -247,7 +258,7 @@ function ContestsDashboard() {
           </div>
         )}
 
-        {activeTab === 'leaderboard' && (
+        {!loading && !error && activeTab === 'leaderboard' && (
           <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -301,7 +312,7 @@ function ContestsDashboard() {
           </div>
         )}
 
-        {activeTab === 'teams' && (
+        {!loading && !error && activeTab === 'teams' && (
           <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -326,13 +337,13 @@ function ContestsDashboard() {
                       {team.name}
                     </td>
                     <td style={{ padding: '1rem 1.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                      {team.members} / 5
+                      {(team.members || []).length} / 5
                     </td>
                     <td style={{ padding: '1rem 1.5rem', textAlign: 'center', color: 'var(--success)' }}>
-                      {team.contestsWon}
+                      {team.stats?.contestsWon || 0}
                     </td>
                     <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 800, color: 'var(--primary)' }}>
-                      {team.rating}
+                      {team.stats?.rating || 0}
                     </td>
                   </tr>
                 ))}
@@ -341,7 +352,7 @@ function ContestsDashboard() {
           </div>
         )}
 
-        {activeTab === 'violations' && (
+        {!loading && !error && activeTab === 'violations' && (
           <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -362,7 +373,7 @@ function ContestsDashboard() {
                 {violations.map((v) => (
                   <tr key={v.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-box-bg">
                     <td style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                      @{v.user}
+                      @{v.userId || v.user}
                     </td>
                     <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>
                       {v.type}
