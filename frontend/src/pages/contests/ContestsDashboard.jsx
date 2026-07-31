@@ -72,9 +72,18 @@ function ContestsDashboard() {
     e.preventDefault();
     setModalError(null);
     try {
+      const selectedTime = new Date(`${createForm.startDate}T${createForm.startTimeStr}:00`);
+      
+      // Allow up to 5 minutes in the past to account for form filling time,
+      // but prevent dates from yesterday or hours ago.
+      if (selectedTime < new Date(Date.now() - 5 * 60 * 1000)) {
+        setModalError("Contest start date and time cannot be in the past.");
+        return;
+      }
+
       const payload = {
         ...createForm,
-        startTime: new Date(`${createForm.startDate}T${createForm.startTimeStr}:00`).toISOString(),
+        startTime: selectedTime.toISOString(),
         problems: createForm.problems.map(pid => {
           const p = globalProblems.find(x => x.id === pid);
           return { problemId: pid, title: p?.title || 'Unknown' };
