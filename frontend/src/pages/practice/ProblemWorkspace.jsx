@@ -203,12 +203,35 @@ export default function ProblemWorkspace() {
     setSubmissions(stored);
   }, [id, contestId]);
 
-  useEffect(() => {
     if (timeLeft !== null && timeLeft > 0) {
       const timer = setInterval(() => setTimeLeft((p) => (p > 0 ? p - 1 : 0)), 1000);
       return () => clearInterval(timer);
     }
   }, [timeLeft]);
+
+  // Load last submission into editor on mount
+  useEffect(() => {
+    if (submissions.length > 0 && problem) {
+      const last = submissions[0];
+      if (last.code && !window.hasLoadedLastCode) {
+        window.hasLoadedLastCode = true;
+        setLanguage(last.language || 'python');
+        setCodeMap(prev => ({ ...prev, [last.language || 'python']: last.code }));
+        
+        if (last.passed !== undefined && last.total !== undefined) {
+          setSubmitResult({
+             status: last.status,
+             timeMs: parseInt(last.time) || 0,
+             passed: last.passed,
+             total: last.total,
+             results: [],
+             error: ''
+          });
+          setShowSubmitModal(true);
+        }
+      }
+    }
+  }, [submissions, problem]);
 
   const formatTime = (t) => {
     if (t === null) return '';
@@ -220,8 +243,16 @@ export default function ProblemWorkspace() {
 
   const isLocked = timeLeft === 0 && contestId;
 
-  const saveSubmission = useCallback((status, time, lang) => {
-    const sub = { date: new Date().toLocaleString(), status, time: time || 'N/A', language: lang };
+  const saveSubmission = useCallback((status, time, lang, codeContent, passed, total) => {
+    const sub = { 
+      date: new Date().toLocaleString(), 
+      status, 
+      time: time || 'N/A', 
+      language: lang,
+      code: codeContent,
+      passed,
+      total
+    };
     setSubmissions((prev) => {
       const next = [sub, ...prev];
       localStorage.setItem(`submissions_${id}`, JSON.stringify(next));
@@ -268,7 +299,7 @@ export default function ProblemWorkspace() {
         setRunStatus('Error');
         setRunError(error);
         setRunTime(elapsed);
-        saveSubmission('Runtime Error', elapsed, language);
+        saveSubmission('Runtime Error', elapsed, language, code, null, null);
       } else {
         const expected = (tc?.output || '').trim();
         const actual = output.trim();
@@ -277,7 +308,7 @@ export default function ProblemWorkspace() {
         setRunStatus(finalStatus);
         setRunOutput(output);
         setRunTime(elapsed);
-        saveSubmission(finalStatus, elapsed, language);
+        saveSubmission(finalStatus, elapsed, language, code, null, null);
       }
     } catch (err) {
       setRunStatus('Error');
@@ -317,7 +348,7 @@ export default function ProblemWorkspace() {
       setSubmitProgress(100);
       setTimeout(() => {
         setSubmitResult(res);
-        saveSubmission(res.status, `${res.timeMs}ms`, language);
+        saveSubmission(res.status, `${res.timeMs}ms`, language, code, res.passed, res.total);
       }, 400);
     } catch (err) {
       clearInterval(interval);

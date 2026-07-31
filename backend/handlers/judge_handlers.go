@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -342,8 +343,27 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 
 	// ── CONTEST SUBMISSION TRACKING ──
 	if req.ContestId != "" {
-		userID, exists := c.Get("user_id")
-		if exists && userID != nil {
+		// Manually extract JWT since this route is public
+		var userID string
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "" {
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				tokenString := parts[1]
+				token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+					return []byte("my_secret_key_change_me"), nil
+				})
+				if err == nil && token.Valid {
+					if claims, ok := token.Claims.(jwt.MapClaims); ok {
+						if uid, ok := claims["user_id"].(string); ok {
+							userID = uid
+						}
+					}
+				}
+			}
+		}
+
+		if userID != "" {
 			
 			// Calculate points
 			points := 0
@@ -363,7 +383,7 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 			}
 
 			submission := models.ContestSubmission{
-				UserID:    userID.(string),
+				UserID:    userID,
 				ContestID: req.ContestId,
 				ProblemID: req.ProblemId,
 				Code:      req.Code,
