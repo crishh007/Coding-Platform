@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Clock, Calendar, Users, Award, Zap, ArrowRight, ChevronRight, Medal, AlertTriangle } from 'lucide-react';
+import { Trophy, Clock, Calendar, Users, Award, Zap, ChevronRight, Medal, AlertTriangle } from 'lucide-react';
 import client from '../../api/client';
 
 class ErrorBoundary extends React.Component {
@@ -483,6 +483,7 @@ function ContestsDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
         )}
       </div>
 
