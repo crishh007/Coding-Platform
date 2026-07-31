@@ -61,8 +61,12 @@ export default function ContestArena() {
           if (userEntry && userEntry.solvedProblems) {
              const solvedMap = {};
              contest.problems?.forEach(p => {
-                if (userEntry.solvedProblems.includes(p.problemId)) {
-                   solvedMap[p.problemId] = { solved: true, gainedPoints: p.points };
+                if (userEntry.solvedProblems[p.problemId] !== undefined) {
+                   const maxScore = userEntry.solvedProblems[p.problemId];
+                   solvedMap[p.problemId] = { 
+                       solved: maxScore === p.points, // Only fully solved if max score == points
+                       gainedPoints: maxScore 
+                   };
                 }
              });
              setSolvedProblems(solvedMap);
@@ -84,8 +88,12 @@ export default function ContestArena() {
                setSolvedProblems(prevSolved => {
                   const newSolved = { ...prevSolved };
                   contest.problems?.forEach(p => {
-                     if (userEntry.solvedProblems.includes(p.problemId)) {
-                        newSolved[p.problemId] = { solved: true, gainedPoints: p.points };
+                     if (userEntry.solvedProblems[p.problemId] !== undefined) {
+                        const maxScore = userEntry.solvedProblems[p.problemId];
+                        newSolved[p.problemId] = { 
+                            solved: maxScore === p.points,
+                            gainedPoints: maxScore 
+                        };
                      }
                   });
                   return newSolved;
@@ -194,7 +202,7 @@ export default function ContestArena() {
             <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {contest.problems && contest.problems.length > 0 ? contest.problems.map((prob, idx) => {
                 const isSolved = solvedProblems[prob.problemId]?.solved;
-                const gained = isSolved ? solvedProblems[prob.problemId].gainedPoints : 0;
+                const gained = solvedProblems[prob.problemId]?.gainedPoints || 0;
                 
                 return (
                   <div key={prob.problemId || idx} className="card hover-scale" style={{ 
@@ -234,7 +242,7 @@ export default function ContestArena() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Gained</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: isSolved ? 'var(--success)' : 'var(--text-main)' }}>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: isSolved ? 'var(--success)' : gained > 0 ? '#f59e0b' : 'var(--text-main)' }}>
                           {gained} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ {prob.points}</span>
                         </div>
                       </div>

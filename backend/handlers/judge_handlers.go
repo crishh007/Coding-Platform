@@ -370,17 +370,15 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 			
 			// Calculate points
 			points := 0
-			if overallStatus == "Accepted" {
-				// We need the points for this problem from the contest. 
-				// We'll fetch the contest to get the points.
-				var contest models.Contest
-				err := h.db.Collection("contests").FindOne(context.Background(), bson.M{"_id": req.ContestId}).Decode(&contest)
-				if err == nil {
-					for _, cp := range contest.Problems {
-						if cp.ProblemID == req.ProblemId {
-							points = cp.Points
-							break
+			var contest models.Contest
+			err := h.db.Collection("contests").FindOne(context.Background(), bson.M{"_id": req.ContestId}).Decode(&contest)
+			if err == nil {
+				for _, cp := range contest.Problems {
+					if cp.ProblemID == req.ProblemId {
+						if len(problem.TestCases) > 0 {
+							points = int(float64(cp.Points) * (float64(totalPassed) / float64(len(problem.TestCases))))
 						}
+						break
 					}
 				}
 			}

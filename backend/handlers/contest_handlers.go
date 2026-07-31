@@ -248,7 +248,7 @@ func (h *Handler) GetContestLeaderboard(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	cursor, err := h.db.Collection("contest_submissions").Find(ctx, bson.M{"contestId": contestID, "status": "Accepted"})
+	cursor, err := h.db.Collection("contest_submissions").Find(ctx, bson.M{"contestId": contestID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch submissions"})
 		return
@@ -262,27 +262,31 @@ func (h *Handler) GetContestLeaderboard(c *gin.Context) {
 
 	// Calculate scores
 	userScores := make(map[string]int)
-	userProblems := make(map[string]map[string]bool)
+	userProblemsMax := make(map[string]map[string]int)
 
 	for _, sub := range submissions {
-		if userProblems[sub.UserID] == nil {
-			userProblems[sub.UserID] = make(map[string]bool)
+		if userProblemsMax[sub.UserID] == nil {
+			userProblemsMax[sub.UserID] = make(map[string]int)
 		}
-		// Only add score if problem hasn't been solved yet by this user
-		if !userProblems[sub.UserID][sub.ProblemID] {
-			userScores[sub.UserID] += sub.Score
-			userProblems[sub.UserID][sub.ProblemID] = true
+		if sub.Score > userProblemsMax[sub.UserID][sub.ProblemID] {
+			userProblemsMax[sub.UserID][sub.ProblemID] = sub.Score
+		}
+	}
+
+	for userID, probs := range userProblemsMax {
+		for _, maxScore := range probs {
+			userScores[userID] += maxScore
 		}
 	}
 
 	// Now build the leaderboard array and fetch user handles
 	type LeaderboardEntry struct {
-		Rank           int      `json:"rank"`
-		Handle         string   `json:"handle"`
-		Score          int      `json:"score"`
-		Penalty        string   `json:"penalty"`
-		UserID         string   `json:"userId"`
-		SolvedProblems []string `json:"solvedProblems"`
+		Rank           int            `json:"rank"`
+		Handle         string         `json:"handle"`
+		Score          int            `json:"score"`
+		Penalty        string         `json:"penalty"`
+		UserID         string         `json:"userId"`
+		SolvedProblems map[string]int `json:"solvedProblems"`
 	}
 
 	var leaderboard []LeaderboardEntry
@@ -295,17 +299,12 @@ func (h *Handler) GetContestLeaderboard(c *gin.Context) {
 			handle = user.Username
 		}
 
-		var solved []string
-		for probId := range userProblems[userID] {
-			solved = append(solved, probId)
-		}
-
 		leaderboard = append(leaderboard, LeaderboardEntry{
 			Handle:         handle,
 			Score:          score,
 			Penalty:        "00:00:00", // Simplified penalty for now
 			UserID:         userID,
-			SolvedProblems: solved,
+			SolvedProblems: userProblemsMax[userID],
 		})
 	}
 
