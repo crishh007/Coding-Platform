@@ -518,48 +518,116 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, 
       background: 'rgba(0,0,0,0.7)', zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
-      <div className="card" style={{ width: '100%', maxWidth: '500px', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
-        <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Create Custom Contest</h2>
+      <div className="card" style={{ width: '100%', maxWidth: '850px', padding: '2rem', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <h2 style={{ marginTop: 0, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>Create Custom Contest</h2>
+        
         {error && (
           <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '4px', fontSize: '0.9rem' }}>
             {error}
           </div>
         )}
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Contest Title</label>
-            <input required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} placeholder="e.g. Weekly Study Group" />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Description</label>
-            <textarea required value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white', minHeight: '80px' }} placeholder="Contest rules..." />
-          </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Start Date & Time</label>
-              <input required type="datetime-local" value={form.startTime} onChange={e => setForm({...form, startTime: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Duration (mins)</label>
-              <input required type="number" min="15" value={form.duration} onChange={e => setForm({...form, duration: parseInt(e.target.value)})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
-            </div>
-          </div>
+
+        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Select Problems ({form.problems.length} selected)</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '4px' }}>
-              {problems.map(p => (
-                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={form.problems.includes(p.id)} onChange={() => toggleProblem(p.id)} />
-                  {p.title} <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>({p.difficulty})</span>
-                </label>
-              ))}
+          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            {/* Left Pane: Details */}
+            <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Contest Title</label>
+                <input required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white', transition: 'border 0.2s' }} placeholder="e.g. Weekly Study Group" />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Description</label>
+                <textarea required value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white', minHeight: '120px', resize: 'vertical' }} placeholder="Contest rules and details..." />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Start Date & Time</label>
+                  <input required type="datetime-local" value={form.startTime} onChange={e => setForm({...form, startTime: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Duration (mins)</label>
+                  <input required type="number" min="15" value={form.duration} onChange={e => setForm({...form, duration: parseInt(e.target.value)})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Pane: Problem Selection */}
+            <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column' }}>
+              <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                <span>Select Problems</span>
+                <span style={{ background: 'var(--primary)', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem' }}>
+                  {form.problems.length} Selected
+                </span>
+              </label>
+              
+              <div style={{ 
+                display: 'flex', flexDirection: 'column', gap: '0.75rem', 
+                maxHeight: '400px', overflowY: 'auto', 
+                padding: '0.5rem', background: 'var(--box-bg)', border: '1px solid var(--border-color)', borderRadius: '8px' 
+              }}>
+                {problems.map(p => {
+                  const isSelected = form.problems.includes(p.id);
+                  return (
+                    <div 
+                      key={p.id} 
+                      onClick={() => toggleProblem(p.id)}
+                      className="hover-card"
+                      style={{ 
+                        padding: '1rem', 
+                        borderRadius: '6px', 
+                        cursor: 'pointer',
+                        background: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-card)',
+                        border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border-color)'}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div style={{ 
+                            width: '18px', height: '18px', borderRadius: '4px', 
+                            border: `2px solid ${isSelected ? 'var(--primary)' : 'var(--text-muted)'}`,
+                            background: isSelected ? 'var(--primary)' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          }}>
+                            {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                          </div>
+                          <h4 style={{ margin: 0, fontSize: '1rem', color: isSelected ? 'var(--primary)' : 'var(--text-main)' }}>{p.title}</h4>
+                        </div>
+                        <span className={`badge badge-${p.difficulty === 'Easy' ? 'success' : (p.difficulty === 'Medium' ? 'warning' : 'error')}`} style={{ fontSize: '0.7rem' }}>
+                          {p.difficulty}
+                        </span>
+                      </div>
+                      
+                      {p.topics && p.topics.length > 0 && (
+                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginLeft: '28px' }}>
+                          {p.topics.slice(0, 4).map(t => (
+                            <span key={t} style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {problems.length === 0 && (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    Loading problems...
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <button type="button" onClick={onClose} className="pr-btn" style={{ flex: 1 }}>Cancel</button>
-            <button type="submit" className="pr-btn primary" style={{ flex: 1 }}>Create Contest</button>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+            <button type="button" onClick={onClose} className="pr-btn" style={{ padding: '0.75rem 2rem' }}>Cancel</button>
+            <button type="submit" className="pr-btn primary" style={{ padding: '0.75rem 2rem' }}>Launch Contest</button>
           </div>
         </form>
       </div>
