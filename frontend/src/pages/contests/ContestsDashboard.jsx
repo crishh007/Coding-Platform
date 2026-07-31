@@ -408,19 +408,30 @@ function ContestsDashboard() {
               <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Trophy size={20} color="var(--text-secondary)" /> Past Contests (Virtual Participation)
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
                 {pastContests.map(c => (
-                  <div key={c.id} className="card hover-scale" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', cursor: 'pointer' }} onClick={() => navigate(`/contests/${c.id}?virtual=true`)}>
-                    <div>
-                      <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{c.title}</h4>
-                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Calendar size={14}/> {new Date(c.startTime).toLocaleDateString()}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Users size={14}/> {c.maxParticipants} Participants</span>
+                  <div key={c.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{c.title}</h3>
+                      <span className="badge" style={{ background: 'rgba(255, 255, 255, 0.1)', color: 'var(--text-secondary)' }}>Completed</span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Calendar size={16} /> {new Date(c.startTime).toLocaleDateString()}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Users size={16} /> {c.maxParticipants} Participated
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>Virtual Practice</span>
-                      <ChevronRight size={20} color="var(--text-muted)" />
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+                      <button 
+                        className="pr-btn" 
+                        style={{ flex: 1, justifyContent: 'center', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.02)' }}
+                        onClick={() => navigate(`/contests/${c.id}?virtual=true`)}
+                      >
+                        Virtual Practice
+                      </button>
                     </div>
                   </div>
                 ))}

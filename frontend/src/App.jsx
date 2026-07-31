@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserEntry from './pages/UserEntry';
 import ContestsDashboard from './pages/contests/ContestsDashboard';
+import ContestDetails from './pages/contests/ContestDetails';
 import ContestArena from './pages/contests/ContestArena';
 import PathsPage from './pages/PathsPage';
 import StudyPage from './pages/StudyPage';
@@ -79,7 +80,8 @@ function App() {
                 <Route path="/practice/problems/:id" element={<ProblemWorkspace />} />
 
                 <Route path="/contests" element={<ContestsDashboard />} />
-                <Route path="/contests/:id" element={<ContestArena />} />
+                <Route path="/contests/:id" element={<ContestDetails />} />
+                <Route path="/contests/:id/arena" element={<ContestArena />} />
               </Route>
             </Routes>
           </Layout>
