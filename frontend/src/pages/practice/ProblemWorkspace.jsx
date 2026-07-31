@@ -233,6 +233,45 @@ export default function ProblemWorkspace() {
     }
   }, [submissions, problem]);
 
+  // Anti-Cheat logic
+  useEffect(() => {
+    if (!contestId || isLocked || isPreview) return;
+    
+    let hasReportedPaste = false;
+    let hasReportedTabSwitch = false;
+
+    const reportViolation = (type) => {
+      client.post('/violations', {
+         contestId: contestId,
+         type: type,
+         description: `User triggered ${type} during problem ${problem?.title || id}`,
+         severity: type === 'tab-switch' ? 'medium' : 'high',
+      }).catch(() => {});
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && !hasReportedTabSwitch) {
+        hasReportedTabSwitch = true;
+        reportViolation('tab-switch');
+      }
+    };
+
+    const handlePaste = () => {
+       if (!hasReportedPaste) {
+           hasReportedPaste = true;
+           reportViolation('code-paste');
+       }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('paste', handlePaste);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [contestId, isLocked, isPreview, problem, id]);
+
   const formatTime = (t) => {
     if (t === null) return '';
     const h = String(Math.floor(t / 3600)).padStart(2, '0');

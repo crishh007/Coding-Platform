@@ -33,6 +33,7 @@ type User struct {
 	CurrentStreak  int    `bson:"currentStreak" json:"currentStreak"`
 	LongestStreak  int    `bson:"longestStreak" json:"longestStreak"`
 	LastActiveDate string `bson:"lastActiveDate" json:"lastActiveDate"`
+	GlobalRating   int    `bson:"globalRating" json:"globalRating"`
 }
 
 // CareerPathCourse embeds course order inside a career path

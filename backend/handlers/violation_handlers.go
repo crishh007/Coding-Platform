@@ -18,6 +18,10 @@ func (h *Handler) ReportViolation(c *gin.Context) {
 		return
 	}
 
+	if userID, exists := c.Get("user_id"); exists {
+		violation.UserID = userID.(string)
+	}
+
 	violation.ID = uuid.New().String()
 	violation.CreatedAt = time.Now()
 	violation.UpdatedAt = time.Now()

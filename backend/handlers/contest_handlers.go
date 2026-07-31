@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func (h *Handler) GetContests(c *gin.Context) {
@@ -67,11 +68,49 @@ func (h *Handler) GetContests(c *gin.Context) {
 }
 
 func (h *Handler) GetGlobalLeaderboard(c *gin.Context) {
-	// Dummy data for global leaderboard (as requested to just do actual queries for contests, teams, violations)
-	leaderboard := []map[string]interface{}{
-		{"rank": 1, "name": "Alex Johnson", "handle": "alexj", "rating": 2845, "solveCount": 452, "tier": "Grandmaster"},
-		{"rank": 2, "name": "Sarah Wu", "handle": "swu99", "rating": 2790, "solveCount": 410, "tier": "Master"},
-		{"rank": 3, "name": "David Chen", "handle": "dchen", "rating": 2650, "solveCount": 389, "tier": "Master"},
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	findOptions := options.Find()
+	findOptions.SetSort(bson.D{{Key: "globalRating", Value: -1}})
+	findOptions.SetLimit(100)
+
+	cursor, err := h.db.Collection("users").Find(ctx, bson.M{}, findOptions)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch leaderboard"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	if err = cursor.All(ctx, &users); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode users"})
+		return
+	}
+
+	var leaderboard []map[string]interface{}
+	for i, user := range users {
+		tier := "Bronze"
+		if user.GlobalRating > 2500 {
+			tier = "Grandmaster"
+		} else if user.GlobalRating > 2000 {
+			tier = "Master"
+		} else if user.GlobalRating > 1500 {
+			tier = "Diamond"
+		} else if user.GlobalRating > 1000 {
+			tier = "Gold"
+		} else if user.GlobalRating > 500 {
+			tier = "Silver"
+		}
+
+		leaderboard = append(leaderboard, map[string]interface{}{
+			"rank":       i + 1,
+			"name":       user.Name,
+			"handle":     user.Username,
+			"rating":     user.GlobalRating,
+			"solveCount": user.CurrentStreak * 5, // Just for some dummy stats based on streak
+			"tier":       tier,
+		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
