@@ -42,6 +42,7 @@ function ContestsDashboard() {
     return sessionStorage.getItem('showContestDraft') === 'true';
   });
   const [modalError, setModalError] = useState(null);
+  const [createdContestId, setCreatedContestId] = useState(null);
   const [globalProblems, setGlobalProblems] = useState([]);
   
   const [createForm, setCreateForm] = useState(() => {
@@ -79,11 +80,18 @@ function ContestsDashboard() {
           return { problemId: pid, title: p?.title || 'Unknown' };
         })
       };
-      await client.post('/contests', payload);
+      const res = await client.post('/contests', payload);
       sessionStorage.removeItem('contestDraft');
       sessionStorage.removeItem('showContestDraft');
-      setShowCreateModal(false);
-      window.location.reload(); // Quick refresh to see the new contest
+      
+      // Extract the new contest ID to show the success screen
+      const newId = res?.data?.id || res?.data?._id || res?.id;
+      if (newId) {
+        setCreatedContestId(newId);
+      } else {
+        setShowCreateModal(false);
+        window.location.reload();
+      }
     } catch (err) {
       console.error(err);
       setModalError(err.response?.data?.error || "Failed to create contest. Please try again.");
@@ -552,12 +560,16 @@ function ContestsDashboard() {
           sessionStorage.removeItem('contestDraft');
           sessionStorage.removeItem('showContestDraft');
           setShowCreateModal(false);
+          if (createdContestId) {
+            window.location.reload();
+          }
         }}
         form={createForm}
         setForm={setCreateForm}
         problems={globalProblems}
         onSubmit={handleCreateContest}
         error={modalError}
+        createdContestId={createdContestId}
         onPreview={(id) => navigate(`/practice/problems/${id}?preview=true`)}
       />
     </div>
@@ -565,15 +577,24 @@ function ContestsDashboard() {
 }
 
 // Minimal Create Contest Modal inline component
-function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, error, onPreview }) {
+function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, error, onPreview, createdContestId }) {
   if (!show) return null;
   
+  const [copied, setCopied] = useState(false);
+
   const toggleProblem = (id) => {
     if (form.problems.includes(id)) {
       setForm({...form, problems: form.problems.filter(p => p !== id)});
     } else {
       setForm({...form, problems: [...form.problems, id]});
     }
+  };
+
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/contests/${createdContestId}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -583,15 +604,48 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, 
       display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <div className="card" style={{ width: '100%', maxWidth: '850px', padding: '2rem', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <h2 style={{ marginTop: 0, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>Create Custom Contest</h2>
+        <h2 style={{ marginTop: 0, marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+          {createdContestId ? 'Contest Created Successfully!' : 'Create Custom Contest'}
+        </h2>
         
-        {error && (
+        {error && !createdContestId && (
           <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '4px', fontSize: '0.9rem' }}>
             {error}
           </div>
         )}
 
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {createdContestId ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center', gap: '1.5rem' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>Invite your friends!</h3>
+              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '400px' }}>
+                Share this link with anyone you want to compete against. They will be able to join and participate in real-time.
+              </p>
+            </div>
+            
+            <div style={{ display: 'flex', width: '100%', maxWidth: '400px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+              <input 
+                readOnly 
+                value={`${window.location.origin}/contests/${createdContestId}`} 
+                style={{ flex: 1, padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', fontSize: '0.9rem' }}
+              />
+              <button 
+                onClick={handleCopyLink}
+                style={{ background: copied ? 'var(--success)' : 'var(--primary)', border: 'none', color: 'white', padding: '0 1rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+              >
+                {copied ? 'Copied!' : 'Copy Link'}
+              </button>
+            </div>
+            
+            <button onClick={onClose} style={{ marginTop: '1rem', padding: '0.75rem 2rem', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-primary)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>
+              Done
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -705,7 +759,8 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, 
             <button type="button" onClick={onClose} className="pr-btn" style={{ padding: '0.75rem 2rem' }}>Cancel</button>
             <button type="submit" className="pr-btn primary" style={{ padding: '0.75rem 2rem' }}>Launch Contest</button>
           </div>
-        </form>
+          </form>
+        )}
       </div>
     </div>
   );
