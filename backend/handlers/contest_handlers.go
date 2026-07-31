@@ -12,6 +12,11 @@ import (
 )
 
 func (h *Handler) GetContests(c *gin.Context) {
+	// Prevent aggressive browser caching of GET requests
+	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+	c.Header("Pragma", "no-cache")
+	c.Header("Expires", "0")
+
 	cursor, err := h.db.Collection("contests").Find(context.Background(), bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch contests"})
@@ -177,7 +182,7 @@ func (h *Handler) DeleteContest(c *gin.Context) {
 	defer cancel()
 
 	var contest models.Contest
-	err := h.db.Collection("contests").FindOne(ctx, bson.M{"id": contestID}).Decode(&contest)
+	err := h.db.Collection("contests").FindOne(ctx, bson.M{"_id": contestID}).Decode(&contest)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Contest not found"})
 		return
@@ -188,7 +193,7 @@ func (h *Handler) DeleteContest(c *gin.Context) {
 		return
 	}
 
-	_, err = h.db.Collection("contests").DeleteOne(ctx, bson.M{"id": contestID})
+	_, err = h.db.Collection("contests").DeleteOne(ctx, bson.M{"_id": contestID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete contest"})
 		return
