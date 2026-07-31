@@ -27,11 +27,14 @@ func (h *Handler) GetContests(c *gin.Context) {
 
 	var upcoming []models.Contest
 	var past []models.Contest
+	var ongoing []models.Contest
 	now := time.Now()
 
 	for _, contest := range contests {
 		if contest.EndTime.Before(now) {
 			past = append(past, contest)
+		} else if contest.StartTime.Before(now) && contest.EndTime.After(now) {
+			ongoing = append(ongoing, contest)
 		} else {
 			upcoming = append(upcoming, contest)
 		}
@@ -43,12 +46,16 @@ func (h *Handler) GetContests(c *gin.Context) {
 	if past == nil {
 		past = make([]models.Contest, 0)
 	}
+	if ongoing == nil {
+		ongoing = make([]models.Contest, 0)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": map[string]interface{}{
 			"upcoming": upcoming,
 			"past":     past,
+			"ongoing":  ongoing,
 		},
 	})
 }
@@ -109,3 +116,52 @@ func (h *Handler) SeedContest(c *gin.Context) {
 		"data":    contest,
 	})
 }
+
+func (h *Handler) CreateContest(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
+	var req struct {
+		Title           string                  `json:"title"`
+		Description     string                  `json:"description"`
+		StartTime       time.Time               `json:"startTime"`
+		Duration        int                     `json:"duration"`
+		MaxParticipants int                     `json:"maxParticipants"`
+		Problems        []models.ContestProblem `json:"problems"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	contest := models.Contest{
+		Title:           req.Title,
+		Description:     req.Description,
+		StartTime:       req.StartTime,
+		EndTime:         req.StartTime.Add(time.Duration(req.Duration) * time.Minute),
+		Duration:        req.Duration,
+		Status:          "upcoming",
+		Type:            "Custom",
+		Difficulty:      "Mixed",
+		MaxParticipants: req.MaxParticipants,
+		CreatorID:       userID.(string),
+		IsCustom:        true,
+		Problems:        req.Problems,
+	}
+
+	contest.ID = uuid.New().String()
+	contest.CreatedAt = time.Now()
+	contest.UpdatedAt = time.Now()
+
+	_, err := h.db.Collection("contests").InsertOne(context.Background(), contest)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create contest"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    contest,
+	})
+}
+

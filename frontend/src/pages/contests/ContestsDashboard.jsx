@@ -29,11 +29,44 @@ function ContestsDashboard() {
   
   const [upcomingContests, setUpcomingContests] = useState([]);
   const [pastContests, setPastContests] = useState([]);
+  const [ongoingContests, setOngoingContests] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [teams, setTeams] = useState([]);
   const [violations, setViolations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [globalProblems, setGlobalProblems] = useState([]);
+  const [createForm, setCreateForm] = useState({
+    title: '', description: '', startTime: '', duration: 60, maxParticipants: 50, problems: []
+  });
+
+  // Fetch problems for the modal
+  useEffect(() => {
+    if (showCreateModal && globalProblems.length === 0) {
+      client.get('/problems').then(res => setGlobalProblems(res.data || [])).catch(console.error);
+    }
+  }, [showCreateModal]);
+
+  const handleCreateContest = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...createForm,
+        startTime: new Date(createForm.startTime).toISOString(),
+        problems: createForm.problems.map(pid => {
+          const p = globalProblems.find(x => x.id === pid);
+          return { problemId: pid, title: p?.title || 'Unknown' };
+        })
+      };
+      await client.post('/contests', payload);
+      setShowCreateModal(false);
+      window.location.reload(); // Quick refresh to see the new contest
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create contest.");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,6 +83,7 @@ function ContestsDashboard() {
         if (contestsRes.data?.data) {
           setUpcomingContests(contestsRes.data.data.upcoming || []);
           setPastContests(contestsRes.data.data.past || []);
+          setOngoingContests(contestsRes.data.data.ongoing || []);
         }
         if (leaderboardRes.data?.data) setLeaderboard(leaderboardRes.data.data);
         if (teamsRes.data?.data) setTeams(teamsRes.data.data);
@@ -195,6 +229,53 @@ function ContestsDashboard() {
         
         {!loading && !error && activeTab === 'contests' && (
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-1rem' }}>
+              <button 
+                className="pr-btn primary"
+                onClick={() => setShowCreateModal(true)}
+                style={{ background: 'var(--primary)', color: 'var(--text-main)', border: 'none', fontWeight: 'bold' }}
+              >
+                + Create Custom Contest
+              </button>
+            </div>
+
+            {/* Ongoing Contests */}
+            {ongoingContests.length > 0 && (
+              <div>
+                <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--error)' }}>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--error)', animation: 'pulse 2s infinite' }}></div>
+                  Live Now
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
+                  {ongoingContests.map(c => (
+                    <div key={c.id} className="card" style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--error)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{c.title}</h3>
+                        <span className="badge badge-error">Live</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Clock size={16} /> Ends {new Date(c.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Users size={16} /> {c.maxParticipants} Registered
+                        </div>
+                      </div>
+                      
+                      <button 
+                        className="pr-btn" 
+                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center', background: 'var(--error)', color: 'white', border: 'none' }}
+                        onClick={() => navigate(`/contests/${c.id}`)}
+                      >
+                        Enter Arena
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Upcoming Contests */}
             <div>
               <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -388,8 +469,78 @@ function ContestsDashboard() {
                 ))}
               </tbody>
             </table>
-          </div>
         )}
+      </div>
+
+      <CreateContestModal 
+        show={showCreateModal} 
+        onClose={() => setShowCreateModal(false)}
+        form={createForm}
+        setForm={setCreateForm}
+        problems={globalProblems}
+        onSubmit={handleCreateContest}
+      />
+    </div>
+  );
+}
+
+// Minimal Create Contest Modal inline component
+function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit }) {
+  if (!show) return null;
+  
+  const toggleProblem = (id) => {
+    if (form.problems.includes(id)) {
+      setForm({...form, problems: form.problems.filter(p => p !== id)});
+    } else {
+      setForm({...form, problems: [...form.problems, id]});
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(0,0,0,0.7)', zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    }}>
+      <div className="card" style={{ width: '100%', maxWidth: '500px', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
+        <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Create Custom Contest</h2>
+        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Contest Title</label>
+            <input required type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} placeholder="e.g. Weekly Study Group" />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Description</label>
+            <textarea required value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white', minHeight: '80px' }} placeholder="Contest rules..." />
+          </div>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Start Date & Time</label>
+              <input required type="datetime-local" value={form.startTime} onChange={e => setForm({...form, startTime: e.target.value})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Duration (mins)</label>
+              <input required type="number" min="15" value={form.duration} onChange={e => setForm({...form, duration: parseInt(e.target.value)})} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'white' }} />
+            </div>
+          </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Select Problems ({form.problems.length} selected)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto', border: '1px solid var(--border-color)', padding: '0.5rem', borderRadius: '4px' }}>
+              {problems.map(p => (
+                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={form.problems.includes(p.id)} onChange={() => toggleProblem(p.id)} />
+                  {p.title} <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>({p.difficulty})</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+            <button type="button" onClick={onClose} className="pr-btn" style={{ flex: 1 }}>Cancel</button>
+            <button type="submit" className="pr-btn primary" style={{ flex: 1 }}>Create Contest</button>
+          </div>
+        </form>
       </div>
     </div>
   );

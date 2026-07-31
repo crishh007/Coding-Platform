@@ -83,6 +83,7 @@ func SetupRouter(h *handlers.Handler) *gin.Engine {
 			
 			// Contest Routes
 			protected.GET("/contests", h.GetContests)
+			protected.POST("/contests", h.CreateContest)
 			protected.GET("/leaderboard/global", h.GetGlobalLeaderboard)
 			protected.GET("/contests/:id", h.GetContestDetails)
 			

@@ -13,9 +13,11 @@ type Contest struct {
 	EndTime     time.Time        `bson:"endTime" json:"endTime"`
 	Duration    int              `bson:"duration" json:"duration"` // in minutes
 	Status      string           `bson:"status" json:"status"`     // upcoming, active, ended
-	Type        string           `bson:"type" json:"type"`         // Weekly, Biweekly, Special
+	Type        string           `bson:"type" json:"type"`         // Weekly, Biweekly, Special, Custom
 	Difficulty  string           `bson:"difficulty" json:"difficulty"`
 	MaxParticipants int          `bson:"maxParticipants" json:"maxParticipants"`
+	CreatorID   string           `bson:"creatorId" json:"creatorId"`
+	IsCustom    bool             `bson:"isCustom" json:"isCustom"`
 	Problems    []ContestProblem `bson:"problems" json:"problems"`
 }
 
