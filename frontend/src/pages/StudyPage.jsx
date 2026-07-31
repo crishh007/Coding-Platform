@@ -2378,26 +2378,6 @@ export default function StudyPage() {
           </div>
         </div>
 
-        {/* AI Tutor Chat card Placeholder */}
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
-          <div style={{
-            flex: 1,
-            minHeight: '280px',
-            border: '2px dashed rgba(139, 92, 246, 0.15)',
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-muted)',
-            fontSize: '0.75rem',
-            textAlign: 'center',
-            padding: '1.5rem',
-            userSelect: 'none'
-          }}>
-            <span>AI Tutor Chat</span>
-          </div>
-        </div>
-
         {/* Related Problems list */}
         {relatedProblems.length > 0 && (
           <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
