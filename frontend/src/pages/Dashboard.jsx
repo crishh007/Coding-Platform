@@ -821,17 +821,20 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Upcoming Contest Card */}
+          {/* Contests Arena Card */}
           <div className="card" style={{ 
             padding: '1.25rem', 
             borderColor: 'var(--border-color)',
             background: 'var(--bg-card)',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Upcoming Contest
+                Contests Arena
               </h3>
               <span 
                 onClick={() => navigate('/contests')}
@@ -841,72 +844,59 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span>Weekly Contest 101</span>
-                  <span style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--danger)',
-                    boxShadow: '0 0 6px var(--danger)',
-                    display: 'inline-block'
-                  }} />
-                  <span style={{ fontSize: '0.6rem', color: 'var(--danger)', textTransform: 'uppercase', fontWeight: 700 }}>Live</span>
-                </h4>
-                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Starts in</p>
+            {/* Live Contest Sub-Card */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.02) 100%)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '1rem',
+              position: 'relative'
+            }}>
+              <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--error)', boxShadow: '0 0 8px var(--error)', animation: 'pulse 2s infinite' }}></div>
+                <span style={{ fontSize: '0.65rem', color: 'var(--error)', fontWeight: 800, textTransform: 'uppercase' }}>Live</span>
               </div>
-              <Trophy size={36} color="var(--warning)" style={{ filter: 'drop-shadow(0 0 8px rgba(245,158,11,0.3))' }} />
+              <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: 'var(--text-main)' }}>Weekly Contest 101</h4>
+              <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Ends in 45m 12s</p>
+              <button
+                onClick={() => navigate('/contests')}
+                style={{ width: '100%', padding: '0.5rem', fontSize: '0.75rem', fontWeight: 600, background: 'var(--error)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Enter Arena
+              </button>
             </div>
 
-            {/* Timer */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', alignItems: 'center' }}>
-              {[
-                { val: hrs, label: 'HRS' },
-                { val: mins, label: 'MIN' },
-                { val: secs, label: 'SEC' }
-              ].map((time, idx) => (
-                <React.Fragment key={idx}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{
-                      background: 'var(--box-bg)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '0.4rem 0.6rem',
-                      fontSize: '1.05rem',
-                      fontWeight: 700,
-                      color: 'var(--text-main)',
-                      minWidth: '38px',
-                      fontFamily: 'monospace'
-                    }}>
-                      {time.val}
-                    </div>
-                    <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.2rem', letterSpacing: '0.5px' }}>{time.label}</span>
+            {/* Upcoming Contest Sub-Card */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '1rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: 'var(--text-main)' }}>Biweekly Contest 34</h4>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Starts in</p>
+                </div>
+                <Trophy size={18} color="var(--primary)" />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.75rem' }}>
+                {[ { val: hrs, label: 'h' }, { val: mins, label: 'm' }, { val: secs, label: 's' } ].map((time, idx) => (
+                  <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '4px', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', fontFamily: 'monospace' }}>{time.val}</span>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{time.label}</span>
                   </div>
-                  {idx < 2 && <span style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--text-muted)', transform: 'translateY(-6px)' }}>:</span>}
-                </React.Fragment>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            <button
-              onClick={() => { setRegisteredContest(true); triggerToast('Successfully registered for Weekly Contest 101! Redirecting to contests...'); setTimeout(() => navigate('/contests'), 1500); }}
-              style={{
-                width: '100%',
-                padding: '0.6rem',
-                fontSize: '0.8rem',
-                fontWeight: 650,
-                color: 'var(--text-main)',
-                background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                transition: 'var(--transition-fast)'
-              }}
-              className="hover-card"
-            >
-              Register Now
-            </button>
+              <button
+                onClick={() => { setRegisteredContest(true); triggerToast('Successfully registered for Biweekly Contest 34!'); setTimeout(() => navigate('/contests'), 1500); }}
+                style={{ width: '100%', padding: '0.5rem', fontSize: '0.75rem', fontWeight: 600, background: 'linear-gradient(90deg, var(--primary), #3b82f6)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Register
+              </button>
+            </div>
           </div>
 
           {/* Difficulty Donut Chart */}
