@@ -191,7 +191,11 @@ export default function ContestDetails() {
           <h2 style={{ fontSize: '1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Code size={22} color="var(--primary)" /> Included Problems
           </h2>
-          {contest.problems && contest.problems.length > 0 ? (
+          {contest.status === 'upcoming' ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+              Problem details are strictly hidden until the contest begins.
+            </div>
+          ) : contest.problems && contest.problems.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {contest.problems.map((p, idx) => (
                 <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>

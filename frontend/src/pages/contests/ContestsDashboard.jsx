@@ -703,7 +703,7 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, 
                 <div style={{ flex: 1, minWidth: '200px' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Start Date & Time</label>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input required type="date" value={form.startDate || ''} onChange={e => setForm({...form, startDate: e.target.value})} style={{ flex: 1, padding: '0.75rem 0.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', colorScheme: 'dark', fontSize: '0.9rem', outline: 'none', cursor: 'pointer' }} />
+                    <input required type="date" min={new Date().toISOString().split('T')[0]} value={form.startDate || ''} onChange={e => setForm({...form, startDate: e.target.value})} style={{ flex: 1, padding: '0.75rem 0.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', colorScheme: 'dark', fontSize: '0.9rem', outline: 'none', cursor: 'pointer' }} />
                     <input required type="time" value={form.startTimeStr || ''} onChange={e => setForm({...form, startTimeStr: e.target.value})} style={{ flex: 1, padding: '0.75rem 0.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', colorScheme: 'dark', fontSize: '0.9rem', outline: 'none', cursor: 'pointer' }} />
                   </div>
                 </div>
