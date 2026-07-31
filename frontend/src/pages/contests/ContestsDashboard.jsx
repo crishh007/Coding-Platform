@@ -86,91 +86,99 @@ function ContestsDashboard() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+      <div style={{ textAlign: 'center', width: '100%', margin: '0 auto 2.5rem auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(245, 158, 11, 0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
             <Trophy size={24} />
           </div>
-          <div>
-            <h1 className="page-title">Contests & Ranks</h1>
-            <p className="page-subtitle">Compete with others, climb the leaderboard, and improve your skills.</p>
-          </div>
+          <h1 className="pr-title" style={{ fontSize: '2.5rem', margin: 0, letterSpacing: '-0.02em', fontWeight: '700' }}>Contests & Ranks</h1>
         </div>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.5', maxWidth: '700px', margin: '0 auto' }}>
+          Compete with others, climb the leaderboard, and improve your skills.
+        </p>
+      </div>
 
-        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
-          <button 
-            onClick={() => setActiveTab('contests')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              borderRadius: 'var(--radius-md)',
-              background: activeTab === 'contests' ? 'var(--primary)' : 'transparent',
-              color: activeTab === 'contests' ? 'var(--text-main)' : 'var(--text-secondary)',
-              border: 'none',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            <Zap size={18} /> Contests
-          </button>
-          <button 
-            onClick={() => setActiveTab('leaderboard')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              borderRadius: 'var(--radius-md)',
-              background: activeTab === 'leaderboard' ? 'var(--primary)' : 'transparent',
-              color: activeTab === 'leaderboard' ? 'var(--text-main)' : 'var(--text-secondary)',
-              border: 'none',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            <Award size={18} /> Global Leaderboard
-          </button>
-          <button 
-            onClick={() => setActiveTab('teams')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              borderRadius: 'var(--radius-md)',
-              background: activeTab === 'teams' ? 'var(--primary)' : 'transparent',
-              color: activeTab === 'teams' ? 'var(--text-main)' : 'var(--text-secondary)',
-              border: 'none',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            <Users size={18} /> Teams
-          </button>
-          <button 
-            onClick={() => setActiveTab('violations')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              borderRadius: 'var(--radius-md)',
-              background: activeTab === 'violations' ? 'var(--error)' : 'transparent',
-              color: activeTab === 'violations' ? 'var(--bg-main)' : 'var(--text-secondary)',
-              border: 'none',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            <AlertTriangle size={18} /> Anti-Cheat
-          </button>
-        </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '1rem', width: '100%', maxWidth: '850px', margin: '0 auto 3rem auto' }}>
+        <button 
+          onClick={() => setActiveTab('contests')}
+          style={{
+            padding: '0 1.2rem',
+            height: '42px',
+            borderRadius: '8px',
+            background: activeTab === 'contests' ? 'var(--primary)' : 'rgba(255,255,255,0.06)',
+            color: activeTab === 'contests' ? 'var(--text-main)' : 'var(--text-secondary)',
+            border: activeTab === 'contests' ? 'none' : '1px solid rgba(255,255,255,0.12)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s',
+            boxSizing: 'border-box'
+          }}
+        >
+          <Zap size={16} /> Contests
+        </button>
+        <button 
+          onClick={() => setActiveTab('leaderboard')}
+          style={{
+            padding: '0 1.2rem',
+            height: '42px',
+            borderRadius: '8px',
+            background: activeTab === 'leaderboard' ? 'var(--primary)' : 'rgba(255,255,255,0.06)',
+            color: activeTab === 'leaderboard' ? 'var(--text-main)' : 'var(--text-secondary)',
+            border: activeTab === 'leaderboard' ? 'none' : '1px solid rgba(255,255,255,0.12)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s',
+            boxSizing: 'border-box'
+          }}
+        >
+          <Award size={16} /> Global Leaderboard
+        </button>
+        <button 
+          onClick={() => setActiveTab('teams')}
+          style={{
+            padding: '0 1.2rem',
+            height: '42px',
+            borderRadius: '8px',
+            background: activeTab === 'teams' ? 'var(--primary)' : 'rgba(255,255,255,0.06)',
+            color: activeTab === 'teams' ? 'var(--text-main)' : 'var(--text-secondary)',
+            border: activeTab === 'teams' ? 'none' : '1px solid rgba(255,255,255,0.12)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s',
+            boxSizing: 'border-box'
+          }}
+        >
+          <Users size={16} /> Teams
+        </button>
+        <button 
+          onClick={() => setActiveTab('violations')}
+          style={{
+            padding: '0 1.2rem',
+            height: '42px',
+            borderRadius: '8px',
+            background: activeTab === 'violations' ? 'var(--error)' : 'rgba(255,255,255,0.06)',
+            color: activeTab === 'violations' ? '#fff' : 'var(--text-secondary)',
+            border: activeTab === 'violations' ? 'none' : '1px solid rgba(255,255,255,0.12)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            transition: 'all 0.2s',
+            boxSizing: 'border-box'
+          }}
+        >
+          <AlertTriangle size={16} /> Anti-Cheat
+        </button>
       </div>
 
       <div className="page-content">
