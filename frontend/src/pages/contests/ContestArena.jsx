@@ -140,9 +140,9 @@ export default function ContestArena() {
   if (error) return <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--error)' }}>{error}</div>;
 
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg-main)', padding: '2rem 3rem' }}>
       {/* Premium Header */}
-      <div className="card glass-panel" style={{ marginBottom: '2rem', padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '2px solid var(--primary)' }}>
+      <div className="card glass-panel" style={{ marginBottom: '2rem', padding: '1.5rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '2px solid var(--primary)', borderRadius: '16px' }}>
         <div>
           <button 
             className="pr-btn-icon hover-scale" 

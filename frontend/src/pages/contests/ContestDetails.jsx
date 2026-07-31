@@ -82,7 +82,7 @@ export default function ContestDetails() {
   if (!contest) return <div style={{ textAlign: 'center', padding: '4rem' }}>Contest not found.</div>;
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg-main)', padding: '2rem 3rem' }}>
       <button 
         onClick={() => navigate('/contests')}
         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', marginBottom: '2rem', padding: 0, fontSize: '0.95rem' }}
