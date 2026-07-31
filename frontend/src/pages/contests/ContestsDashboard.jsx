@@ -45,7 +45,7 @@ function ContestsDashboard() {
   // Fetch problems for the modal
   useEffect(() => {
     if (showCreateModal && globalProblems.length === 0) {
-      client.get('/problems').then(res => setGlobalProblems(res.data || [])).catch(console.error);
+      client.get('/problems').then(res => setGlobalProblems(res || [])).catch(console.error);
     }
   }, [showCreateModal]);
 
