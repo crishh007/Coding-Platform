@@ -31,6 +31,13 @@ func SetupRouter(h *handlers.Handler) *gin.Engine {
 
 	api := r.Group("/api/v1")
 	{
+		// Auth Endpoints
+		auth := api.Group("/auth")
+		{
+			auth.POST("/register", h.Register)
+			auth.POST("/login", h.Login)
+		}
+
 		// New Simplified Embedded Endpoints
 		api.GET("/topics/tree", h.GetTopicTree)
 		api.GET("/topics/:id", h.GetTopicByID)
@@ -38,20 +45,58 @@ func SetupRouter(h *handlers.Handler) *gin.Engine {
 		
 		api.GET("/career/paths", h.GetCareerPaths)
 		api.GET("/career/paths/:id", h.GetCareerPathByID)
-		api.POST("/lessons/:id/simulate", h.SimulateLesson)
 		
-		api.POST("/lessons/:id/quiz/submit", h.SubmitQuiz)
-		api.GET("/lessons/:id/quiz/submissions", h.GetQuizSubmissions)
+		api.GET("/problems", h.GetProblems)
+		api.GET("/problems/:id", h.GetProblemByID)
+		api.POST("/problems/seed", h.SeedProblems)
+		api.POST("/contests/seed", h.SeedContest)
+
+		// Judge is public — no login required to run/submit code
+		api.POST("/judge/execute", h.RunCode)
+		api.POST("/judge/submit", h.SubmitCode)
+		api.POST("/problems/patch-testcases", h.PatchTestCases)
+		api.POST("/problems/seed-acceptance", h.SeedAcceptanceRates)
 		
-		api.POST("/lessons/:id/practice/submit", h.SubmitPractice)
-		api.GET("/lessons/:id/practice/submissions", h.GetPracticeSubmissions)
-		
-		api.POST("/lessons/:id/complete", h.MarkLessonCompleted)
-		api.POST("/lessons/:id/incomplete", h.MarkLessonIncomplete)
-		api.GET("/progress/status", h.GetProgressStatus)
-		
-		api.GET("/user/streak", h.GetStreakStats)
-		api.POST("/user/streak/ping", h.PingActivityStreak)
+		// Protected endpoints
+		protected := api.Group("/")
+		protected.Use(AuthMiddleware())
+		{
+			protected.POST("/lessons/:id/quiz/submit", h.SubmitQuiz)
+			protected.GET("/lessons/:id/quiz/submissions", h.GetQuizSubmissions)
+			
+			protected.POST("/lessons/:id/practice/submit", h.SubmitPractice)
+			protected.GET("/lessons/:id/practice/submissions", h.GetPracticeSubmissions)
+			
+			protected.POST("/lessons/:id/complete", h.MarkLessonCompleted)
+			protected.POST("/lessons/:id/incomplete", h.MarkLessonIncomplete)
+			protected.POST("/lessons/:id/simulate", h.SimulateLesson)
+			protected.GET("/progress/status", h.GetProgressStatus)
+			
+			protected.GET("/recommendations", h.GetRecommendations)
+			
+			protected.POST("/ai/chat", h.ChatWithAI)
+
+			// User problem progress
+			protected.GET("/user/problems/solved", h.GetSolvedProblems)
+			protected.GET("/user/problems/stats", h.GetUserProblemStats)
+			protected.POST("/user/problems/:id/solve", h.MarkProblemSolved)
+			
+			// Contest Routes
+			protected.GET("/contests", h.GetContests)
+			protected.GET("/leaderboard/global", h.GetGlobalLeaderboard)
+			protected.GET("/contests/:id", h.GetContestDetails)
+			
+			// Teams
+			protected.POST("/teams", h.CreateTeam)
+			protected.GET("/teams", h.GetTeams)
+			
+			// Violations
+			protected.POST("/violations", h.ReportViolation)
+			protected.GET("/violations", h.GetViolations)
+			
+			protected.GET("/user/streak", h.GetStreakStats)
+			protected.POST("/user/streak/ping", h.PingActivityStreak)
+		}
 
 		// Admin Endpoints
 		admin := api.Group("/admin")

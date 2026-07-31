@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Play, HelpCircle, Code2, Layers, ChevronRight, ChevronLeft,Search, Bot, CheckCircle2, AlertCircle,
   Award,BookMarked,Terminal,Activity,ArrowRight,TrendingUp,Map,Compass,
@@ -6,6 +6,7 @@ import { BookOpen, Play, HelpCircle, Code2, Layers, ChevronRight, ChevronLeft,Se
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import client from '../api/client';
+import { ProgressContext } from '../context/ProgressContext';
 
 const getPracticeTemplate = (slug, lang, defaultSig = '') => {
   if (defaultSig) return defaultSig;
@@ -173,11 +174,12 @@ export default function StudyPage() {
   const [practiceLang, setPracticeLang] = useState('python');
   const [practiceQuestionIdx, setPracticeQuestionIdx] = useState(0);
   const [customTestCase, setCustomTestCase] = useState('');
-  const [practiceRunMode, setPracticeRunMode] = useState('run');
   const [userPracticeCode, setUserPracticeCode] = useState('');
-  const [practiceFeedback, setPracticeFeedback] = useState(null);
   const [practiceHistory, setPracticeHistory] = useState([]);
   const [submittingPractice, setSubmittingPractice] = useState(false);
+  const [practiceFeedback, setPracticeFeedback] = useState(null);
+  const [practiceRunOutput, setPracticeRunOutput] = useState(null);
+  const [practiceRunMode, setPracticeRunMode] = useState('submit');
 
   // AI Tutor States
   const [aiQuestion, setAiQuestion] = useState('');
@@ -187,7 +189,8 @@ export default function StudyPage() {
   const [aiTyping, setAiTyping] = useState(false);
 
   // Progress Tracking & Streak States
-  const [completedLessonIds, setCompletedLessonIds] = useState([]);
+  const { progress, toggleLessonCompletion: contextToggleLessonCompletion, fetchProgress } = useContext(ProgressContext);
+  const completedLessonIds = progress?.completedLessonIds || [];
   const [streakData, setStreakData] = useState({ currentStreak: 0, longestStreak: 0 });
 
   // Auto-scroll pseudocode
@@ -204,13 +207,7 @@ export default function StudyPage() {
 
   // Fetch progress status & streak info
   const fetchProgressAndStreak = () => {
-    client.get('/progress/status')
-      .then((res) => {
-        if (res && res.completedLessonIds) {
-          setCompletedLessonIds(res.completedLessonIds);
-        }
-      })
-      .catch((err) => console.error("Error fetching progress:", err));
+    fetchProgress();
 
     client.get('/user/streak')
       .then((res) => {
@@ -236,13 +233,16 @@ export default function StudyPage() {
       });
   }, []);
 
-  const toggleLessonCompletion = (lessonId, isCompleted) => {
-    const endpoint = isCompleted ? `/lessons/${lessonId}/complete` : `/lessons/${lessonId}/incomplete`;
-    client.post(endpoint)
-      .then(() => {
-        fetchProgressAndStreak();
+  const toggleLessonCompletion = async (lessonId, isCompleted) => {
+    await contextToggleLessonCompletion(lessonId, isCompleted);
+    // Fetch streak in case completion gave streak rewards
+    client.get('/user/streak')
+      .then((res) => {
+        if (res) {
+          setStreakData(res);
+        }
       })
-      .catch((err) => console.error("Error toggling completion:", err));
+      .catch((err) => console.error("Error fetching streak:", err));
   };
 
   // Fetch topics and current topic lessons
@@ -285,6 +285,13 @@ export default function StudyPage() {
     const activeId = selectedLesson?.lessonId || selectedLesson?.id;
     if (activeId) {
       setLoadingLesson(true);
+      // Track last viewed lesson session in localStorage
+      if (topicId) {
+        localStorage.setItem('last_viewed_lesson', JSON.stringify({
+          topicId: topicId,
+          lessonId: activeId
+        }));
+      }
       Promise.all([
         client.get(`/lessons/${activeId}`),
         client.get(`/lessons/${activeId}/quiz/submissions`).catch(() => []),
@@ -514,6 +521,7 @@ export default function StudyPage() {
         if (response && response.steps) {
           setSimStepsList(response.steps);
           setSimStepIndex(0);
+          fetchProgress();
         } else {
           setSimStepsList([]);
         }
@@ -574,6 +582,23 @@ export default function StudyPage() {
     if (!(selectedLesson?.lessonId || selectedLesson?.id)) return;
     setSubmittingPractice(true);
     setPracticeFeedback(null);
+    setPracticeRunOutput(null);
+
+    if (practiceRunMode === 'run') {
+      client.post('/judge/execute', {
+        code: userPracticeCode,
+        language: practiceLang,
+        input: customTestCase
+      })
+      .then((res) => {
+        setPracticeRunOutput(res);
+      })
+      .catch((err) => {
+        setPracticeRunOutput({ error: err.response?.data?.error || err.message || 'Execution Failed' });
+      })
+      .finally(() => setSubmittingPractice(false));
+      return;
+    }
 
     client.post(`/lessons/${selectedLesson.lessonId || selectedLesson.id}/practice/submit`, {
       code: userPracticeCode,
@@ -613,25 +638,28 @@ export default function StudyPage() {
       });
   };
 
-  const handleAskAi = (e) => {
+  const handleAiSubmit = async (e) => {
     e.preventDefault();
-    if (!aiQuestion.trim()) return;
+    const query = aiQuestion || e.target.elements[0]?.value;
+    if (!query || !query.trim()) return;
 
-    const query = aiQuestion;
     setAiChat(prev => [...prev, { role: 'user', text: query }]);
     setAiQuestion('');
     setAiTyping(true);
 
-    setTimeout(() => {
-      let reply = 'Halving search ranges recursively or iteratively gives logarithmic O(log n) efficiency curves. Let me know if you would like me to explain static arrays or dynamic pointer blocks!';
-      if (query.toLowerCase().includes('sort')) {
-        reply = 'Binary Search checks the middle element. It depends on a pre-sorted array so we can confidently discard the left or right partitions. Unsorted arrays require sequential O(n) scans.';
-      } else if (query.toLowerCase().includes('list')) {
-        reply = 'Linked list nodes reside in random heap addresses connected via references. Hence, we must traverse them sequentially in O(n) time, as we cannot fetch random offsets instantly.';
-      }
-      setAiChat(prev => [...prev, { role: 'assistant', text: reply }]);
+    try {
+      const { default: client } = await import('../api/client');
+      const data = await client.post('/ai/chat', { 
+        message: query,
+        context: selectedLesson?.title || 'Unknown Lesson'
+      });
+      setAiChat(prev => [...prev, { role: 'assistant', text: data.response }]);
+    } catch (err) {
+      console.error('Failed to get AI response:', err);
+      setAiChat(prev => [...prev, { role: 'assistant', text: 'Sorry, I am currently unavailable.' }]);
+    } finally {
       setAiTyping(false);
-    }, 1200);
+    }
   };
 
   // Flatten nested topic tree recursively to filter and search all topics (including sub-topics)
@@ -729,7 +757,7 @@ export default function StudyPage() {
   const practiceMeta = getMeta('practice_question');
 
   const totalTopicLessons = lessons.length;
-  const completedTopicLessons = lessons.filter(l => completedLessonIds.includes(l.id)).length;
+  const completedTopicLessons = lessons.filter(l => completedLessonIds.includes(l.lessonId || l.id)).length;
   const progressPercentage = totalTopicLessons > 0 ? Math.round((completedTopicLessons / totalTopicLessons) * 100) : 0;
   const dashArray = 150.8;
   const dashOffset = dashArray - (progressPercentage / 100) * dashArray;
@@ -1218,6 +1246,19 @@ export default function StudyPage() {
               <span style={{ fontWeight: 600, color: 'var(--primary-hover)' }}>{currentTopic.title}</span>
             </div>
             
+            {/* Mark as Complete Button */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {selectedLesson && (
+                <button
+                  className={completedLessonIds.includes(selectedLesson.id || selectedLesson.lessonId) ? "btn btn-success" : "btn btn-outline"}
+                  style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', border: completedLessonIds.includes(selectedLesson.id || selectedLesson.lessonId) ? 'none' : '1px solid var(--border-color)' }}
+                  onClick={() => toggleLessonCompletion(selectedLesson.id || selectedLesson.lessonId, !completedLessonIds.includes(selectedLesson.id || selectedLesson.lessonId))}
+                >
+                  <CheckCircle2 size={14} />
+                  {completedLessonIds.includes(selectedLesson.id || selectedLesson.lessonId) ? "Completed" : "Mark as Complete"}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -1728,7 +1769,7 @@ export default function StudyPage() {
                           flexDirection: 'column',
                           overflowY: 'auto',
                           flex: 1,
-                          backgroundColor: 'rgba(0,0,0,0.2)',
+                          backgroundColor: 'var(--box-bg)',
                           padding: '1rem',
                           borderRadius: 'var(--radius-sm)',
                           border: '1px solid var(--border-color)',
@@ -2160,7 +2201,7 @@ export default function StudyPage() {
                         rows="15"
                         value={userPracticeCode}
                         onChange={(e) => setUserPracticeCode(e.target.value)}
-                        style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#c084fc', lineHeight: '1.6', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)' }}
+                        style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#c084fc', lineHeight: '1.6', background: 'var(--bg-input)', border: '1px solid var(--border-color)' }}
                       />
                       
                       {/* Custom Testcases */}
@@ -2172,7 +2213,7 @@ export default function StudyPage() {
                           value={customTestCase}
                           onChange={(e) => setCustomTestCase(e.target.value)}
                           placeholder="Enter custom test cases here..."
-                          style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: '1.5', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)' }}
+                          style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-main)', lineHeight: '1.5', background: 'var(--bg-input)', border: '1px solid var(--border-color)' }}
                         />
                       </div>
 
@@ -2195,13 +2236,24 @@ export default function StudyPage() {
                     </div>
 
                     {/* AI Review Panel */}
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: '#060814' }}>
+                    <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--bg-canvas)' }}>
                       <h3 style={{ fontSize: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                         <Bot size={16} color="var(--primary)" />
-                        <span>Feedback Report</span>
+                        <span>{practiceRunOutput ? 'Execution Output' : 'Feedback Report'}</span>
                       </h3>
 
-                      {practiceFeedback ? (
+                      {practiceRunOutput ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="animate-fade-in">
+                          <div style={{ padding: '1rem', background: 'var(--bg-code)', border: '1px solid var(--border-color)', borderRadius: '6px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', whiteSpace: 'pre-wrap', color: practiceRunOutput.error ? 'var(--error)' : 'var(--text-main)' }}>
+                            {practiceRunOutput.error || practiceRunOutput.output || 'No output'}
+                          </div>
+                          {practiceRunOutput.timeMs && (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              Execution Time: {practiceRunOutput.timeMs}ms
+                            </div>
+                          )}
+                        </div>
+                      ) : practiceFeedback ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="animate-fade-in">
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <div style={{ flex: 1, textAlign: 'center', padding: '0.5rem', background: 'rgba(139,92,246,0.05)', borderRadius: '4px', border: '1px solid var(--primary-glow)' }}>
@@ -2260,22 +2312,53 @@ export default function StudyPage() {
           flexShrink: 0
         }}
       >
-        {/* Progress Tracker Card Placeholder */}
+        {/* Progress Tracker Card */}
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
           <div style={{
-            height: '56px',
-            border: '2px dashed rgba(255, 255, 255, 0.08)',
+            background: 'var(--box-bg)',
+            border: '1px solid var(--border-color)',
             borderRadius: 'var(--radius-sm)',
+            padding: '1.25rem',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-muted)',
-            fontSize: '0.75rem',
-            textAlign: 'center',
-            padding: '0.5rem',
-            userSelect: 'none'
+            flexDirection: 'column',
+            gap: '1rem'
           }}>
-            <span>Topic Progress placeholder (Coming Later)</span>
+            <h4 style={{ fontSize: '0.9rem', margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <TrendingUp size={16} color="var(--primary)" />
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {currentTopic ? currentTopic.title : 'Course'} Progress
+              </span>
+            </h4>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ position: 'relative', width: '56px', height: '56px' }}>
+                <svg width="56" height="56" viewBox="0 0 56 56">
+                  <circle cx="28" cy="28" r="24" fill="none" stroke="var(--box-bg-hover)" strokeWidth="4" />
+                  <circle 
+                    cx="28" cy="28" r="24" 
+                    fill="none" 
+                    stroke="var(--primary)" 
+                    strokeWidth="4" 
+                    strokeDasharray={dashArray}
+                    strokeDashoffset={dashOffset}
+                    strokeLinecap="round"
+                    style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.5s ease' }}
+                  />
+                </svg>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 600 }}>
+                  {progressPercentage}%
+                </div>
+              </div>
+              
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                  {completedTopicLessons} of {totalTopicLessons} Lessons
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  Completed
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2295,7 +2378,7 @@ export default function StudyPage() {
             padding: '1.5rem',
             userSelect: 'none'
           }}>
-            <span>AI Tutor Chat placeholder (Coming Later)</span>
+            <span>AI Tutor Chat</span>
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { ThemeContext } from '../../context/ThemeContext';
 import { 
   Home as HomeIcon,
   Compass, 
@@ -10,8 +11,7 @@ import {
   Sparkles,
   Layers,
   Users,
-  Flame,
-  Bell,
+
   Terminal,
   Sun,
   Moon,
@@ -32,8 +32,7 @@ export default function Layout({ children }) {
   const [adminMode, setAdminMode] = useState(() => localStorage.getItem('codemastery_admin_mode') === 'true');
   const [toggleUnlocked, setToggleUnlocked] = useState(() => localStorage.getItem('codemastery_toggle_unlocked') === 'true');
   
-  // Theme state
-  const [theme, setTheme] = useState(() => localStorage.getItem('codemastery_theme') || 'dark');
+  const { theme, toggleTheme } = useContext(ThemeContext);
   
   // Custom Toast State
   const [toastMessage, setToastMessage] = useState('');
@@ -59,14 +58,9 @@ export default function Layout({ children }) {
       .catch(() => setServerOnline(false));
   }, []);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('codemastery_theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-    showToast(`Switched to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`);
+  const handleToggleTheme = () => {
+    toggleTheme();
+    showToast(`Switched Theme`);
   };
 
   // Hidden developer keyboard shortcut to unlock (Ctrl + Alt + A)
@@ -106,7 +100,7 @@ export default function Layout({ children }) {
   };
 
   const navItems = [
-    { label: 'Home', path: '/', icon: HomeIcon },
+    { label: 'Dashboard', path: '/', icon: HomeIcon },
     { 
       label: 'Learning', 
       icon: Compass, 
@@ -117,6 +111,7 @@ export default function Layout({ children }) {
       ]
     },
     { label: 'Practice', path: '/practice', icon: Code2 },
+    { label: 'Contests & Ranks', path: '/contests', icon: Trophy },
     { 
       label: 'Interview Prep', 
       icon: Briefcase,
@@ -157,14 +152,14 @@ export default function Layout({ children }) {
             }}
           >
             <div style={{ 
-              background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)', 
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               width: '32px', 
               height: '32px', 
               borderRadius: 'var(--radius-sm)', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              boxShadow: '0 0 12px rgba(139, 92, 246, 0.4)'
+              boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)'
             }}>
               <Terminal size={18} color="#fff" />
             </div>
@@ -174,7 +169,7 @@ export default function Layout({ children }) {
           </div>
 
           {/* Center: Navigation Links */}
-          <nav style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <nav style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '0.25rem', zIndex: 10 }}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const hasSubItems = !!item.subItems;
@@ -338,52 +333,19 @@ export default function Layout({ children }) {
             })}
           </nav>
           
-          {/* Right Side: Streak, Bell, Avatar, and Admin Mode toggle */}
+          {/* Right Side: Avatar, and Admin Mode toggle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
             {/* Streak indicator badge */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.35rem',
-              background: 'rgba(239, 68, 68, 0.08)',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
-              padding: '0.3rem 0.6rem',
-              borderRadius: '100px',
-              fontSize: '0.8rem',
-              fontWeight: 650,
-              color: 'var(--danger)',
-              cursor: 'pointer'
-            }} onClick={() => showToast('Activity Streak: 12 days active.')}>
-              <Flame size={14} fill="var(--danger)" />
-              <span>12</span>
-            </div>
 
-            {/* Notification Bell */}
-            <div 
-              style={{ position: 'relative', cursor: 'pointer', color: 'var(--text-secondary)' }}
-              onClick={() => showToast('No new notifications.')}
-            >
-              <Bell size={18} />
-              <span style={{
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--danger)',
-                boxShadow: '0 0 6px var(--danger)'
-              }} />
-            </div>
 
             {/* Theme Toggle */}
-            <div 
-              style={{ cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}
-              onClick={toggleTheme}
+            <button 
+              className="pr-btn-icon" 
+              onClick={handleToggleTheme}
               title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </div>
+            </button>
 
             {/* Conditional Glowing Admin Toggle */}
             {toggleUnlocked && (
@@ -391,11 +353,11 @@ export default function Layout({ children }) {
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '0.65rem',
-                backgroundColor: adminMode ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                border: `1px solid ${adminMode ? 'rgba(139, 92, 246, 0.3)' : 'var(--border-color)'}`,
+                backgroundColor: adminMode ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                border: `1px solid ${adminMode ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-color)'}`,
                 padding: '0.35rem 0.65rem',
                 borderRadius: '100px',
-                boxShadow: adminMode ? '0 0 10px rgba(139, 92, 246, 0.15)' : 'none',
+                boxShadow: adminMode ? '0 0 10px rgba(16, 185, 129, 0.15)' : 'none',
                 transition: 'var(--transition-normal)'
               }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 650, color: adminMode ? 'var(--primary-hover)' : 'var(--text-secondary)', userSelect: 'none' }}>

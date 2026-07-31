@@ -191,7 +191,7 @@ export default function PathsPage() {
                     width: `${nodeWidth}px`,
                     height: `${nodeHeight}px`,
                     borderRadius: '8px',
-                    border: `2px solid ${isSelected ? '#fff' : 'var(--primary)'}`,
+                    border: `2px solid ${isSelected ? 'var(--text-main)' : 'var(--primary)'}`,
                     background: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'rgba(16, 22, 43, 0.95)',
                     boxShadow: isSelected ? '0 0 20px rgba(59, 130, 246, 0.5)' : '0 4px 6px rgba(0,0,0,0.3)',
                     cursor: 'pointer',
@@ -210,7 +210,7 @@ export default function PathsPage() {
                       style={{ 
                         fontWeight: 'bold', 
                         fontSize: '1rem', 
-                        color: isSelected ? '#fff' : '#e2e8f0',
+                        color: isSelected ? 'var(--text-main)' : '#e2e8f0',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -252,7 +252,7 @@ export default function PathsPage() {
                 <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>
                   Selected Topic
                 </span>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: '#fff' }}>{selectedNode.title}</h3>
+                <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{selectedNode.title}</h3>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                   {selectedNode.description}
                 </p>
@@ -299,7 +299,7 @@ export default function PathsPage() {
                   style={{ width: '100%', padding: '0.85rem', fontSize: '1.05rem', fontWeight: 'bold' }}
                   onClick={() => handleStartNode(selectedNode)}
                 >
-                  <Play size={18} fill="#fff" style={{ marginRight: '0.5rem' }} />
+                  <Play size={18} fill="var(--text-main)" style={{ marginRight: '0.5rem' }} />
                   Start Lessons
                 </button>
               </div>

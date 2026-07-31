@@ -3,11 +3,126 @@ package main
 import (
 	"context"
 	"log"
+	"fmt"
+	"strings"
+	"math/rand"
 
 	"codemastery-learning-system/config"
 	"codemastery-learning-system/database"
+	"codemastery-learning-system/handlers"
 	"codemastery-learning-system/models"
 )
+
+// statsForDifficulty returns deterministic submission / accepted counts for a given difficulty.
+func statsForDifficulty(diff string) (submissions, accepted int) {
+    switch diff {
+    case "Easy":
+        submissions = 8000
+        accepted = int(0.72 * float64(submissions)) // ≈ 5760
+    case "Medium":
+        submissions = 5000
+        accepted = int(0.49 * float64(submissions)) // ≈ 2450
+    case "Hard":
+        submissions = 2000
+        accepted = int(0.28 * float64(submissions)) // ≈ 560
+    default:
+        submissions, accepted = 0, 0
+    }
+    return
+}
+
+func generatePracticeTestCases(title, description string) []models.PracticeTestCase {
+    // Create a deterministic random source from the problem title.
+    var seed int64
+    for _, r := range title {
+        seed = seed*31 + int64(r)
+    }
+    rnd := rand.New(rand.NewSource(seed))
+
+    lower := strings.ToLower(title)
+    var cases []models.PracticeTestCase
+
+    switch {
+    case strings.Contains(lower, "sum"):
+        // Visible examples (sum of two numbers)
+        cases = []models.PracticeTestCase{{Input: "3 5", Output: "8"}, {Input: "-2 10", Output: "8"}, {Input: "0 0", Output: "0"}}
+        // Hidden edge cases
+        for i := 0; i < 10; i++ {
+            a := rnd.Intn(2000) - 1000 // range [-1000,1000]
+            b := rnd.Intn(2000) - 1000
+            cases = append(cases, models.PracticeTestCase{Input: fmt.Sprintf("%d %d", a, b), Output: fmt.Sprintf("%d", a+b)})
+        }
+    case strings.Contains(lower, "average"):
+        cases = []models.PracticeTestCase{{Input: "3 4 5", Output: "4"}, {Input: "10 20 30", Output: "20"}, {Input: "0 0 0", Output: "0"}}
+        for i := 0; i < 10; i++ {
+            a := rnd.Intn(2000) - 1000
+            b := rnd.Intn(2000) - 1000
+            c := rnd.Intn(2000) - 1000
+            sum := a + b + c
+            avg := sum / 3
+            cases = append(cases, models.PracticeTestCase{Input: fmt.Sprintf("%d %d %d", a, b, c), Output: fmt.Sprintf("%d", avg)})
+        }
+    case strings.Contains(lower, "array"):
+        cases = []models.PracticeTestCase{{Input: "5 1 2 3 4 5", Output: "15"}, {Input: "3 -1 -2 -3", Output: "-6"}, {Input: "1 0", Output: "0"}}
+        for i := 0; i < 10; i++ {
+            n := rnd.Intn(10) + 1 // size 1‑10
+            arr := make([]int, n)
+            sum := 0
+            for j := 0; j < n; j++ {
+                v := rnd.Intn(2000) - 1000
+                arr[j] = v
+                sum += v
+            }
+            // Build input string: first token is length, then elements
+            parts := []string{fmt.Sprintf("%d", n)}
+            for _, v := range arr {
+                parts = append(parts, fmt.Sprintf("%d", v))
+            }
+            cases = append(cases, models.PracticeTestCase{Input: strings.Join(parts, " "), Output: fmt.Sprintf("%d", sum)})
+        }
+    case strings.Contains(lower, "palindrome"):
+        cases = []models.PracticeTestCase{{Input: "racecar", Output: "true"}, {Input: "hello", Output: "false"}, {Input: "A", Output: "true"}}
+        for i := 0; i < 10; i++ {
+            // generate random strings of length 1‑15
+            l := rnd.Intn(15) + 1
+            sb := strings.Builder{}
+            for j := 0; j < l; j++ {
+                ch := rune(rnd.Intn(26) + 97) // a‑z
+                sb.WriteRune(ch)
+            }
+            s := sb.String()
+            // check palindrome
+            rev := reverseString(s)
+            isPal := "false"
+            if s == rev {
+                isPal = "true"
+            }
+            cases = append(cases, models.PracticeTestCase{Input: s, Output: isPal})
+        }
+    default:
+        // Generic numeric pair fallback – first three are simple examples
+        cases = []models.PracticeTestCase{{Input: "1 2", Output: "3"}, {Input: "-5 5", Output: "0"}, {Input: "0 0", Output: "0"}}
+        for i := 0; i < 10; i++ {
+            a := rnd.Intn(2000) - 1000
+            b := rnd.Intn(2000) - 1000
+            cases = append(cases, models.PracticeTestCase{Input: fmt.Sprintf("%d %d", a, b), Output: fmt.Sprintf("%d", a+b)})
+        }
+    }
+    // Ensure exactly 13 cases (first three visible, rest hidden)
+    if len(cases) > 13 {
+        cases = cases[:13]
+    }
+    return cases
+}
+
+// reverseString returns the reversed version of s.
+func reverseString(s string) string {
+    r := []rune(s)
+    for i, j := 0, len(r)-1; i < j; i, j = i+1, j-1 {
+        r[i], r[j] = r[j], r[i]
+    }
+    return string(r)
+}
 
 func main() {
 	cfg := config.LoadConfig()
@@ -245,28 +360,24 @@ func main() {
 								ProblemTitle: "Declare Variables",
 								Description:  "Declare age, salary and grade variables.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 							{
 								ID:           "pq_2",
 								ProblemTitle: "Swap Two Numbers",
 								Description:  "Swap two integer variables.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 							{
 								ID:           "pq_3",
 								ProblemTitle: "Area of Circle",
 								Description:  "Calculate area using radius.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 							{
 								ID:           "pq_4",
 								ProblemTitle: "Temperature Conversion",
 								Description:  "Convert Celsius to Fahrenheit.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 						},
 					},
@@ -343,28 +454,24 @@ func main() {
 								ProblemTitle: "Simple Calculator",
 								Description:  "Perform arithmetic operations.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 							{
 								ID:           "pq_2",
 								ProblemTitle: "Even or Odd",
 								Description:  "Check whether a number is even or odd.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 							{
 								ID:           "pq_3",
 								ProblemTitle: "Maximum of Two Numbers",
 								Description:  "Find the larger number.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 							{
 								ID:           "pq_4",
 								ProblemTitle: "Swap Without Temporary Variable",
 								Description:  "Swap two numbers using operators.",
 								StarterCode:  map[string]interface{}{},
-								TestCases:    []models.PracticeTestCase{},
 							},
 						},
 					},
@@ -435,10 +542,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Sum of Two Numbers", Description: "Read two integers and print their sum.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Average of Three Numbers", Description: "Read three numbers and find average.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Simple Interest", Description: "Calculate simple interest from user input.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Grade Calculator", Description: "Read marks and display grade.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Sum of Two Numbers", Description: "Read two integers and print their sum.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Average of Three Numbers", Description: "Read three numbers and find average.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Simple Interest", Description: "Calculate simple interest from user input.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Grade Calculator", Description: "Read marks and display grade.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -499,10 +606,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Double to Integer", Description: "Convert a double into an integer.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Integer to Double", Description: "Convert an integer into a double.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "ASCII Value", Description: "Convert a character into its ASCII value.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Temperature Conversion", Description: "Convert integer temperature into double precision.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Double to Integer", Description: "Convert a double into an integer.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Integer to Double", Description: "Convert an integer into a double.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "ASCII Value", Description: "Convert a character into its ASCII value.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Temperature Conversion", Description: "Convert integer temperature into double precision.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -560,10 +667,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Find Sum of Array", Description: "Calculate the sum of all array elements.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Find Maximum Element", Description: "Find the largest element in an array.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Reverse Array", Description: "Reverse an array.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Count Even Numbers", Description: "Count even elements in an array.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Find Sum of Array", Description: "Calculate the sum of all array elements.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Find Maximum Element", Description: "Find the largest element in an array.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Reverse Array", Description: "Reverse an array.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Count Even Numbers", Description: "Count even elements in an array.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -621,10 +728,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Reverse String", Description: "Reverse a given string.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Palindrome String", Description: "Check whether a string is palindrome.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Count Vowels", Description: "Count vowels in a string.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Character Frequency", Description: "Count occurrences of each character.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Reverse String", Description: "Reverse a given string.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Palindrome String", Description: "Check whether a string is palindrome.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Count Vowels", Description: "Count vowels in a string.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Character Frequency", Description: "Count occurrences of each character.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -683,10 +790,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Even or Odd", Description: "Determine whether a number is even or odd.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Largest of Three Numbers", Description: "Find the largest among three numbers.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Leap Year Checker", Description: "Determine whether a year is a leap year.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Grade Calculator", Description: "Print grades based on marks.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Even or Odd", Description: "Determine whether a number is even or odd.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Largest of Three Numbers", Description: "Find the largest among three numbers.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Leap Year Checker", Description: "Determine whether a year is a leap year.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Grade Calculator", Description: "Print grades based on marks.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -746,10 +853,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Print Numbers 1 to N", Description: "Print numbers from 1 to N.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Factorial of a Number", Description: "Find factorial using loops.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Sum of Digits", Description: "Calculate sum of digits of a number.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Fibonacci Series", Description: "Print first N Fibonacci numbers.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Print Numbers 1 to N", Description: "Print numbers from 1 to N.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Factorial of a Number", Description: "Find factorial using loops.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Sum of Digits", Description: "Calculate sum of digits of a number.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Fibonacci Series", Description: "Print first N Fibonacci numbers.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -808,10 +915,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Right Triangle Star Pattern", Description: "Print a right-angled star pattern.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Pyramid Pattern", Description: "Print a pyramid using stars.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Number Triangle Pattern", Description: "Print number triangle pattern.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Diamond Pattern", Description: "Print a diamond pattern.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Right Triangle Star Pattern", Description: "Print a right-angled star pattern.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Pyramid Pattern", Description: "Print a pyramid using stars.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Number Triangle Pattern", Description: "Print number triangle pattern.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Diamond Pattern", Description: "Print a diamond pattern.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -871,10 +978,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Sum of Two Numbers", Description: "Create a method to add two integers.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Factorial Function", Description: "Create a function to calculate factorial.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Prime Checker", Description: "Write a method that checks if a number is prime.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Maximum of Three Numbers", Description: "Return the maximum among three numbers.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Sum of Two Numbers", Description: "Create a method to add two integers.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Factorial Function", Description: "Create a function to calculate factorial.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Prime Checker", Description: "Write a method that checks if a number is prime.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Maximum of Three Numbers", Description: "Return the maximum among three numbers.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -933,10 +1040,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Factorial Using Recursion", Description: "Calculate factorial recursively.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Fibonacci Number", Description: "Find nth Fibonacci number recursively.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Sum of Natural Numbers", Description: "Find sum from 1 to n using recursion.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Power Function", Description: "Calculate x^n recursively.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Factorial Using Recursion", Description: "Calculate factorial recursively.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Fibonacci Number", Description: "Find nth Fibonacci number recursively.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Sum of Natural Numbers", Description: "Find sum from 1 to n using recursion.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Power Function", Description: "Calculate x^n recursively.", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -995,10 +1102,10 @@ func main() {
 					},
 					Practice: models.LessonPractice{
 						Questions: []models.PracticeQuestion{
-							{ID: "pq_1", ProblemTitle: "Analyze Single Loop", Description: "Determine the complexity of a single loop.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_2", ProblemTitle: "Nested Loop Complexity", Description: "Find complexity of nested loops.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_3", ProblemTitle: "Binary Search Complexity", Description: "Analyze binary search algorithm.", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
-							{ID: "pq_4", ProblemTitle: "Compare Algorithms", Description: "Compare O(n), O(log n), and O(n²).", StarterCode: map[string]interface{}{}, TestCases: []models.PracticeTestCase{}},
+							{ID: "pq_1", ProblemTitle: "Analyze Single Loop", Description: "Determine the complexity of a single loop.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_2", ProblemTitle: "Nested Loop Complexity", Description: "Find complexity of nested loops.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_3", ProblemTitle: "Binary Search Complexity", Description: "Analyze binary search algorithm.", StarterCode: map[string]interface{}{}},
+							{ID: "pq_4", ProblemTitle: "Compare Algorithms", Description: "Compare O(n), O(log n), and O(n²).", StarterCode: map[string]interface{}{}},
 						},
 					},
 				}
@@ -3184,6 +3291,13 @@ func main() {
 			}
 
 			lesson.InitID()
+			// Set deterministic stats and three example test cases based on difficulty
+			subCnt, accCnt := statsForDifficulty(lesson.Difficulty)
+			for i := range lesson.Practice.Questions {
+				lesson.Practice.Questions[i].SubmissionCount = subCnt
+				lesson.Practice.Questions[i].AcceptedCount = accCnt
+				lesson.Practice.Questions[i].TestCases = generatePracticeTestCases(lesson.Practice.Questions[i].ProblemTitle, lesson.Practice.Questions[i].Description)
+			}
 			_, err := db.Collection("lessons").InsertOne(ctx, lesson)
 			if err != nil {
 				log.Fatalf("Failed to insert lesson %s: %v", lessonTitle, err)
@@ -3241,7 +3355,12 @@ func main() {
 		log.Fatalf("Failed to insert career path: %v", err)
 	}
 
-	log.Println("Database seeded successfully with all Curriculums and Career Paths!")
+	log.Println("Seeding Practice Problems...")
+	if err := handlers.SeedGlobalProblemsDB(ctx, db); err != nil {
+		log.Fatalf("Failed to seed practice problems: %v", err)
+	}
+
+	log.Println("Database seeded successfully with all Curriculums, Career Paths, and Practice Problems!")
 }
 
 // Simple slug generator helper

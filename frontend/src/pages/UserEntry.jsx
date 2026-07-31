@@ -142,7 +142,7 @@ export default function UserEntry() {
               onClick={() => handleSelectMode(mode.id)}
             >
               <div>
-                <span className="badge badge-primary" style={{ marginBottom: '1.25rem', backgroundColor: isCurrent ? 'var(--primary)' : 'rgba(139,92,246,0.1)', color: isCurrent ? '#fff' : '' }}>
+                <span className="badge badge-primary" style={{ marginBottom: '1.25rem', backgroundColor: isCurrent ? 'var(--primary)' : 'rgba(139,92,246,0.1)', color: isCurrent ? 'var(--text-main)' : '' }}>
                   {mode.badge}
                 </span>
                 <div style={{ 

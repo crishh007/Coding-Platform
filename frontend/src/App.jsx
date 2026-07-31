@@ -1,11 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ProgressProvider } from './context/ProgressContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/layout/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserEntry from './pages/UserEntry';
+import ContestsDashboard from './pages/contests/ContestsDashboard';
+import ContestArena from './pages/contests/ContestArena';
 import PathsPage from './pages/PathsPage';
 import StudyPage from './pages/StudyPage';
 import ComingSoon from './pages/ComingSoon';
@@ -33,43 +38,55 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/modes" element={<UserEntry />} />
-            <Route path="/paths/:id" element={<PathsPage />} />
-            <Route path="/study" element={<StudyPage />} />
-            <Route path="/coming-soon" element={<ComingSoon />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/courses" element={<CourseSelection />} />
-            <Route path="/careers" element={<CareerSelection />} />
-            <Route path="/careers/:id" element={<CareerPathsPage />} />
-            
-            {/* module_i integrated routes */}
-            <Route path="/interviews" element={<InterviewsDashboard />} />
-            <Route path="/interview/*" element={<HRInterview />} />
-            <Route path="/resume/*" element={<ResumeBuilder />} />
-            <Route path="/mock-interview/*" element={<MockInterview />} />
-            <Route path="/coding-interview/*" element={<CodingInterview />} />
-            <Route path="/aptitude/*" element={<Aptitude />} />
-            <Route path="/system-design/*" element={<SystemDesign />} />
-            
-            <Route path="/interviews/foundational" element={<FoundationalLayout />}>
-              <Route path=":feature/:topic" element={<FoundationalContent />} />
-              <Route path=":feature" element={<FoundationalContent />} />
-            </Route>
-            
-            {/* Practice Module Routes */}
-            <Route path="/practice" element={<PracticeDashboard />} />
-            <Route path="/problems/:id" element={<ProblemWorkspace />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ProgressProvider>
+          <Router>
+          <Layout>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/coming-soon" element={<ComingSoon />} />
+              <Route path="/modes" element={<UserEntry />} />
+
+              {/* Learning Feature Routes (Unprotected) */}
+              <Route path="/study" element={<StudyPage />} />
+              <Route path="/courses" element={<CourseSelection />} />
+              <Route path="/careers" element={<CareerSelection />} />
+              <Route path="/careers/:id" element={<CareerPathsPage />} />
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/paths/:id" element={<PathsPage />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                
+                {/* module_i integrated routes */}
+                <Route path="/interviews" element={<InterviewsDashboard />} />
+                <Route path="/interview/*" element={<HRInterview />} />
+                <Route path="/resume/*" element={<ResumeBuilder />} />
+                <Route path="/mock-interview/*" element={<MockInterview />} />
+                <Route path="/coding-interview/*" element={<CodingInterview />} />
+                <Route path="/aptitude/*" element={<Aptitude />} />
+                <Route path="/system-design/*" element={<SystemDesign />} />
+                
+                <Route path="/interviews/foundational" element={<FoundationalLayout />}>
+                  <Route path=":feature/:topic" element={<FoundationalContent />} />
+                  <Route path=":feature" element={<FoundationalContent />} />
+                </Route>
+                
+                {/* Practice Module Routes */}
+                <Route path="/practice" element={<PracticeDashboard />} />
+                <Route path="/practice/problems/:id" element={<ProblemWorkspace />} />
+
+                <Route path="/contests" element={<ContestsDashboard />} />
+                <Route path="/contests/:id" element={<ContestArena />} />
+              </Route>
+            </Routes>
+          </Layout>
+        </Router>
+        </ProgressProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

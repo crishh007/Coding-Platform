@@ -10,6 +10,7 @@ import (
 	"codemastery-learning-system/simulations/sorting"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func (h *Handler) SimulateLesson(c *gin.Context) {
@@ -19,6 +20,17 @@ func (h *Handler) SimulateLesson(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
+	}
+
+	// Update lesson simulation progress if user is authenticated
+	userID, exists := c.Get("user_id")
+	if exists {
+		filter := bson.M{"userId": userID, "lessonId": id}
+		update := bson.M{
+			"$set": bson.M{"completedSimulation": true},
+		}
+		// Upsert the progress record
+		h.db.Collection("progress").UpdateOne(context.Background(), filter, update, options.UpdateOne().SetUpsert(true))
 	}
 
 	var lesson models.Lesson

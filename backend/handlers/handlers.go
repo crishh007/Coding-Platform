@@ -3,11 +3,15 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 
 	"codemastery-learning-system/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Handler struct {
@@ -123,6 +127,14 @@ func (h *Handler) SubmitQuiz(c *gin.Context) {
 		}
 	}
 
+	userID, _ := c.Get("user_id")
+	if score == total {
+		// Mark quiz completed
+		filter := bson.M{"userId": userID, "lessonId": id}
+		update := bson.M{"$set": bson.M{"completedQuiz": true}}
+		h.db.Collection("progress").UpdateOne(context.Background(), filter, update, options.UpdateOne().SetUpsert(true))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":         "submitted",
 		"score":          score,
@@ -136,6 +148,14 @@ func (h *Handler) GetQuizSubmissions(c *gin.Context) {
 }
 
 func (h *Handler) SubmitPractice(c *gin.Context) {
+	id := c.Param("id")
+	userID, _ := c.Get("user_id")
+
+	// Upsert progress
+	filter := bson.M{"userId": userID, "lessonId": id}
+	update := bson.M{"$set": bson.M{"completedPractice": true}}
+	h.db.Collection("progress").UpdateOne(context.Background(), filter, update, options.UpdateOne().SetUpsert(true))
+
 	c.JSON(http.StatusOK, gin.H{"status": "passed", "feedback": "{}"})
 }
 
@@ -144,23 +164,160 @@ func (h *Handler) GetPracticeSubmissions(c *gin.Context) {
 }
 
 func (h *Handler) MarkLessonCompleted(c *gin.Context) {
+	id := c.Param("id")
+	userID, _ := c.Get("user_id")
+
+	filter := bson.M{"userId": userID, "lessonId": id}
+	update := bson.M{
+		"$set": bson.M{"completedExplanation": true},
+		"$setOnInsert": bson.M{
+			"_id":       uuid.New().String(),
+			"createdAt": time.Now(),
+		},
+	}
+	h.db.Collection("progress").UpdateOne(context.Background(), filter, update, options.UpdateOne().SetUpsert(true))
+
 	c.JSON(http.StatusOK, gin.H{"status": "completed"})
 }
 
 func (h *Handler) MarkLessonIncomplete(c *gin.Context) {
+	id := c.Param("id")
+	userID, _ := c.Get("user_id")
+
+	filter := bson.M{"userId": userID, "lessonId": id}
+	update := bson.M{
+		"$set": bson.M{"completedExplanation": false},
+		"$setOnInsert": bson.M{
+			"_id":       uuid.New().String(),
+			"createdAt": time.Now(),
+		},
+	}
+	h.db.Collection("progress").UpdateOne(context.Background(), filter, update, options.UpdateOne().SetUpsert(true))
+
 	c.JSON(http.StatusOK, gin.H{"status": "incomplete"})
 }
 
 func (h *Handler) GetProgressStatus(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"completedLessonIds": []string{}})
+	userID, _ := c.Get("user_id")
+	
+	cursor, err := h.db.Collection("progress").Find(context.Background(), bson.M{"userId": userID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch progress"})
+		return
+	}
+	
+	type ProgressResult struct {
+		UserID               string `bson:"userId" json:"userId"`
+		LessonID             string `bson:"lessonId" json:"lessonId"`
+		CompletedExplanation bool   `bson:"completedExplanation" json:"completedExplanation"`
+		CompletedSimulation  bool   `bson:"completedSimulation" json:"completedSimulation"`
+		CompletedQuiz        bool   `bson:"completedQuiz" json:"completedQuiz"`
+		CompletedPractice    bool   `bson:"completedPractice" json:"completedPractice"`
+		ProgressPercent      int    `bson:"progressPercent" json:"progressPercent"`
+	}
+	var progressList []ProgressResult
+	if err = cursor.All(context.Background(), &progressList); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode progress"})
+		return
+	}
+
+	completedLessonIds := []string{}
+	for i, p := range progressList {
+		// Dynamically calculate progress percentage: 25% for each of the 4 lesson milestones
+		pct := 0
+		if p.CompletedExplanation {
+			pct += 25
+		}
+		if p.CompletedSimulation {
+			pct += 25
+		}
+		if p.CompletedQuiz {
+			pct += 25
+		}
+		if p.CompletedPractice {
+			pct += 25
+		}
+		progressList[i].ProgressPercent = pct
+
+		if p.CompletedExplanation || p.CompletedPractice || p.CompletedQuiz {
+			completedLessonIds = append(completedLessonIds, p.LessonID)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"completedLessonIds": completedLessonIds,
+		"details": progressList,
+	})
 }
 
 func (h *Handler) GetStreakStats(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"currentStreak": 1, "longestStreak": 1})
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusOK, gin.H{"currentStreak": 0, "longestStreak": 0})
+		return
+	}
+
+	var user models.User
+	err := h.db.Collection("users").FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"currentStreak": 0, "longestStreak": 0})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"currentStreak":  user.CurrentStreak,
+		"longestStreak":  user.LongestStreak,
+		"lastActiveDate": user.LastActiveDate,
+	})
 }
 
 func (h *Handler) PingActivityStreak(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"currentStreak": 1, "longestStreak": 1})
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var user models.User
+	err := h.db.Collection("users").FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
+		return
+	}
+
+	today := time.Now().Format("2006-01-02")
+	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+
+	if user.LastActiveDate == "" {
+		user.CurrentStreak = 1
+		user.LastActiveDate = today
+	} else if user.LastActiveDate == yesterday {
+		user.CurrentStreak++
+		user.LastActiveDate = today
+	} else if user.LastActiveDate == today {
+		// already updated today, do nothing
+	} else {
+		user.CurrentStreak = 1
+		user.LastActiveDate = today
+	}
+
+	if user.CurrentStreak > user.LongestStreak {
+		user.LongestStreak = user.CurrentStreak
+	}
+
+	filter := bson.M{"_id": userID}
+	update := bson.M{"$set": bson.M{
+		"currentStreak":  user.CurrentStreak,
+		"longestStreak":  user.LongestStreak,
+		"lastActiveDate": user.LastActiveDate,
+	}}
+	h.db.Collection("users").UpdateOne(context.Background(), filter, update)
+
+	c.JSON(http.StatusOK, gin.H{
+		"currentStreak":  user.CurrentStreak,
+		"longestStreak":  user.LongestStreak,
+		"lastActiveDate": user.LastActiveDate,
+	})
 }
 
 func (h *Handler) GetCareerPaths(c *gin.Context) {

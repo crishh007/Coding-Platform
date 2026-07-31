@@ -1,0 +1,377 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Trophy, Clock, Calendar, Users, Award, Zap, ArrowRight, ChevronRight, Medal, AlertTriangle } from 'lucide-react';
+import client from '../../api/client';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return <div style={{padding: '50px', color: 'red'}}><h1>React Error</h1><pre>{this.state.error.toString()}</pre></div>;
+    }
+    return this.props.children;
+  }
+}
+
+export default function ContestsDashboardWrapper() {
+  return <ErrorBoundary><ContestsDashboard /></ErrorBoundary>;
+}
+
+function ContestsDashboard() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('contests'); // 'contests' or 'leaderboard'
+  
+  // Dummy Data for now, will connect to backend later
+  const upcomingContests = [
+    { id: '101', title: 'Weekly Contest 101', date: 'Oct 28, 2026', time: '10:00 AM PST', duration: '90 mins', participants: 1245 },
+    { id: '102', title: 'Biweekly Contest 45', date: 'Nov 2, 2026', time: '08:00 AM PST', duration: '90 mins', participants: 890 }
+  ];
+
+  const pastContests = [
+    { id: '100', title: 'Weekly Contest 100', date: 'Oct 21, 2026', participants: 1540 },
+    { id: '99', title: 'Weekly Contest 99', date: 'Oct 14, 2026', participants: 1420 }
+  ];
+
+  const leaderboard = [
+    { rank: 1, name: 'Alex Johnson', handle: 'alexj', rating: 2845, solveCount: 452, tier: 'Grandmaster' },
+    { rank: 2, name: 'Sarah Wu', handle: 'swu99', rating: 2790, solveCount: 410, tier: 'Master' },
+    { rank: 3, name: 'David Chen', handle: 'dchen', rating: 2650, solveCount: 389, tier: 'Master' },
+    { rank: 4, name: 'Emily Taylor', handle: 'etaylor', rating: 2540, solveCount: 350, tier: 'Candidate Master' },
+    { rank: 5, name: 'Michael Brown', handle: 'mbrown', rating: 2480, solveCount: 320, tier: 'Candidate Master' },
+  ];
+
+  const teams = [
+    { id: '1', name: 'Code Wizards', members: 4, rating: 2500, contestsWon: 3 },
+    { id: '2', name: 'Binary Bosses', members: 5, rating: 2400, contestsWon: 1 }
+  ];
+
+  const violations = [
+    { id: 'v1', user: 'johndoe', type: 'Plagiarism', severity: 'High', status: 'Pending' },
+    { id: 'v2', user: 'janedoe', type: 'Multiple IPs', severity: 'Medium', status: 'Resolved' }
+  ];
+
+  const getRankColor = (rank) => {
+    if (rank === 1) return '#eab308'; // Gold
+    if (rank === 2) return '#94a3b8'; // Silver
+    if (rank === 3) return '#b45309'; // Bronze
+    return 'var(--text-secondary)';
+  };
+
+  const getTierBadge = (tier) => {
+    let bg = 'rgba(59, 130, 246, 0.1)';
+    let color = '#3b82f6';
+    if (tier === 'Grandmaster') { bg = 'rgba(239, 68, 68, 0.1)'; color = '#ef4444'; }
+    else if (tier === 'Master') { bg = 'rgba(245, 158, 11, 0.1)'; color = '#f59e0b'; }
+    else if (tier === 'Candidate Master') { bg = 'rgba(168, 85, 247, 0.1)'; color = '#a855f7'; }
+
+    return (
+      <span style={{ 
+        padding: '0.25rem 0.75rem', 
+        borderRadius: '50px', 
+        background: bg, 
+        color: color, 
+        fontSize: '0.75rem', 
+        fontWeight: 600 
+      }}>
+        {tier}
+      </span>
+    );
+  };
+
+  return (
+    <div className="page-container">
+      <div className="page-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(245, 158, 11, 0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
+            <Trophy size={24} />
+          </div>
+          <div>
+            <h1 className="page-title">Contests & Ranks</h1>
+            <p className="page-subtitle">Compete with others, climb the leaderboard, and improve your skills.</p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+          <button 
+            onClick={() => setActiveTab('contests')}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: 'var(--radius-md)',
+              background: activeTab === 'contests' ? 'var(--primary)' : 'transparent',
+              color: activeTab === 'contests' ? 'var(--text-main)' : 'var(--text-secondary)',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Zap size={18} /> Contests
+          </button>
+          <button 
+            onClick={() => setActiveTab('leaderboard')}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: 'var(--radius-md)',
+              background: activeTab === 'leaderboard' ? 'var(--primary)' : 'transparent',
+              color: activeTab === 'leaderboard' ? 'var(--text-main)' : 'var(--text-secondary)',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Award size={18} /> Global Leaderboard
+          </button>
+          <button 
+            onClick={() => setActiveTab('teams')}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: 'var(--radius-md)',
+              background: activeTab === 'teams' ? 'var(--primary)' : 'transparent',
+              color: activeTab === 'teams' ? 'var(--text-main)' : 'var(--text-secondary)',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Users size={18} /> Teams
+          </button>
+          <button 
+            onClick={() => setActiveTab('violations')}
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderRadius: 'var(--radius-md)',
+              background: activeTab === 'violations' ? 'var(--error)' : 'transparent',
+              color: activeTab === 'violations' ? 'var(--bg-main)' : 'var(--text-secondary)',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <AlertTriangle size={18} /> Anti-Cheat
+          </button>
+        </div>
+      </div>
+
+      <div className="page-content">
+        {activeTab === 'contests' && (
+          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Upcoming Contests */}
+            <div>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Clock size={20} color="var(--primary)" /> Upcoming Contests
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1rem' }}>
+                {upcomingContests.map(c => (
+                  <div key={c.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{c.title}</h3>
+                      <span className="badge badge-primary">Scheduled</span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Calendar size={16} /> {c.date} at {c.time}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Clock size={16} /> {c.duration}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Users size={16} /> {c.participants} Registered
+                      </div>
+                    </div>
+                    
+                    <button 
+                      className="pr-btn primary" 
+                      style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
+                      onClick={() => navigate(`/contests/${c.id}`)}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Past Contests */}
+            <div>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Trophy size={20} color="var(--text-secondary)" /> Past Contests (Virtual Participation)
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {pastContests.map(c => (
+                  <div key={c.id} className="card hover-scale" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', cursor: 'pointer' }} onClick={() => navigate(`/contests/${c.id}?virtual=true`)}>
+                    <div>
+                      <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{c.title}</h4>
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Calendar size={14}/> {c.date}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><Users size={14}/> {c.participants} Participants</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>Virtual Practice</span>
+                      <ChevronRight size={20} color="var(--text-muted)" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'leaderboard' && (
+          <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Medal size={24} color="#eab308" /> Global Rankings
+              </h2>
+              <div className="search-input-glass" style={{ width: '250px', padding: '0.5rem 1rem' }}>
+                <input type="text" placeholder="Search users..." style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', width: '100%', outline: 'none' }} />
+              </div>
+            </div>
+            
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--box-bg)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <th style={{ padding: '1rem 1.5rem', width: '80px' }}>Rank</th>
+                  <th style={{ padding: '1rem 1.5rem' }}>User</th>
+                  <th style={{ padding: '1rem 1.5rem' }}>Tier</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>Problems Solved</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>Contest Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((user) => (
+                  <tr key={user.handle} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-box-bg">
+                    <td style={{ padding: '1rem 1.5rem', fontWeight: 800, fontSize: '1.1rem', color: getRankColor(user.rank) }}>
+                      #{user.rank}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--box-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--primary)' }}>
+                          {user.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{user.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>@{user.handle}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem' }}>
+                      {getTierBadge(user.tier)}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600, color: 'var(--text-main)' }}>
+                      {user.solveCount}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>
+                      {user.rating}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'teams' && (
+          <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Users size={24} color="var(--primary)" /> Teams
+              </h2>
+              <button className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>Create Team</button>
+            </div>
+            
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--box-bg)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <th style={{ padding: '1rem 1.5rem' }}>Team Name</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>Members</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>Contests Won</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>Team Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((team) => (
+                  <tr key={team.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-box-bg">
+                    <td style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                      {team.name}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      {team.members} / 5
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', textAlign: 'center', color: 'var(--success)' }}>
+                      {team.contestsWon}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 800, color: 'var(--primary)' }}>
+                      {team.rating}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'violations' && (
+          <div className="animate-fade-in card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertTriangle size={24} color="var(--error)" /> Anti-Cheat & Violations
+              </h2>
+            </div>
+            
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--box-bg)', textAlign: 'left', fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <th style={{ padding: '1rem 1.5rem' }}>User</th>
+                  <th style={{ padding: '1rem 1.5rem' }}>Violation Type</th>
+                  <th style={{ padding: '1rem 1.5rem' }}>Severity</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {violations.map((v) => (
+                  <tr key={v.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-box-bg">
+                    <td style={{ padding: '1rem 1.5rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                      @{v.user}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>
+                      {v.type}
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem' }}>
+                      <span className={`badge ${v.severity === 'High' ? 'badge-error' : 'badge-warning'}`}>{v.severity}</span>
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                      <span style={{ color: v.status === 'Resolved' ? 'var(--success)' : 'var(--warning)', fontWeight: 600 }}>{v.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

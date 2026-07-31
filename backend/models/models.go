@@ -27,6 +27,9 @@ type User struct {
 	BaseModel      `bson:",inline"`
 	Email          string `bson:"email" json:"email"`
 	Name           string `bson:"name" json:"name"`
+	Username       string `bson:"username" json:"username"`
+	Password       string `bson:"password" json:"-"`
+	Role           string `bson:"role" json:"role"`
 	CurrentStreak  int    `bson:"currentStreak" json:"currentStreak"`
 	LongestStreak  int    `bson:"longestStreak" json:"longestStreak"`
 	LastActiveDate string `bson:"lastActiveDate" json:"lastActiveDate"`
@@ -124,11 +127,13 @@ type PracticeTestCase struct {
 
 // PracticeQuestion represents a single coding challenge in the practice section
 type PracticeQuestion struct {
-	ID           string                 `bson:"id" json:"id"`
-	ProblemTitle string                 `bson:"problemTitle" json:"problemTitle"`
-	Description  string                 `bson:"description" json:"description"`
-	StarterCode  map[string]interface{} `bson:"starterCode" json:"starterCode"`
-	TestCases    []PracticeTestCase     `bson:"testCases" json:"testCases"`
+	ID               string                 `bson:"id" json:"id"`
+	ProblemTitle     string                 `bson:"problemTitle" json:"problemTitle"`
+	Description      string                 `bson:"description" json:"description"`
+	StarterCode      map[string]interface{} `bson:"starterCode" json:"starterCode"`
+	TestCases        []PracticeTestCase     `bson:"testCases" json:"testCases"`
+	SubmissionCount  int                    `bson:"submissionCount" json:"submissionCount"`
+	AcceptedCount    int                    `bson:"acceptedCount" json:"acceptedCount"`
 }
 
 // LessonPractice holds coding practice info

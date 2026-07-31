@@ -9,8 +9,8 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('access_token'));
   const [loading, setLoading] = useState(true);
 
-  // In development, the Go backend runs on 8081
-  const apiBase = 'http://localhost:8081/api/v1/auth';
+  // In development, the Go backend runs on 8080
+  const apiBase = 'http://localhost:8080/api/v1/auth';
 
   useEffect(() => {
     // If we have a token, we could optionally fetch user details here
