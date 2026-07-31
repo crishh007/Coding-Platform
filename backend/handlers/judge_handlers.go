@@ -351,6 +351,9 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 			if len(parts) == 2 && parts[0] == "Bearer" {
 				tokenString := parts[1]
 				token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+					}
 					return []byte("my_secret_key_change_me"), nil
 				})
 				if err == nil && token.Valid {
@@ -372,7 +375,7 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 				// We'll fetch the contest to get the points.
 				var contest models.Contest
 				err := h.db.Collection("contests").FindOne(context.Background(), bson.M{"_id": req.ContestId}).Decode(&contest)
-				if err == nil && contest.Status == "active" {
+				if err == nil {
 					for _, cp := range contest.Problems {
 						if cp.ProblemID == req.ProblemId {
 							points = cp.Points
