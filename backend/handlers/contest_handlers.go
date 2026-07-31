@@ -289,7 +289,7 @@ func (h *Handler) GetContestLeaderboard(c *gin.Context) {
 		SolvedProblems map[string]int `json:"solvedProblems"`
 	}
 
-	var leaderboard []LeaderboardEntry
+	leaderboard := make([]LeaderboardEntry, 0)
 
 	for userID, score := range userScores {
 		var user models.User
