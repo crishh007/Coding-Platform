@@ -60,6 +60,14 @@ export default function Dashboard() {
           setStreakLoaded(true);
         }
 
+        const contestsRes = await client.get('/contests');
+        if (contestsRes?.data) {
+          setDashboardContests({
+            live: contestsRes.data.ongoing?.[0] || null,
+            upcoming: contestsRes.data.upcoming?.[0] || null
+          });
+        }
+
         const tree = await client.get('/topics/tree');
         if (tree) {
           setTopicTree(tree);
@@ -143,13 +151,25 @@ export default function Dashboard() {
   }, [solvedProblemsCount, topicTree, progress]);
 
   // Real-time Countdown Timer for Contest
-  const [timeLeft, setTimeLeft] = useState(2 * 3600 + 15 * 60 + 34); 
+  const [dashboardContests, setDashboardContests] = useState({ live: null, upcoming: null });
+  const [currentTime, setCurrentTime] = useState(new Date()); 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+      setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const getCountdown = (targetDate) => {
+    if (!targetDate) return { hrs: '00', mins: '00', secs: '00', total: 0 };
+    const diff = Math.max(0, Math.floor((new Date(targetDate) - currentTime) / 1000));
+    return {
+      hrs: Math.floor(diff / 3600).toString().padStart(2, '0'),
+      mins: Math.floor((diff % 3600) / 60).toString().padStart(2, '0'),
+      secs: (diff % 60).toString().padStart(2, '0'),
+      total: diff
+    };
+  };
 
   const formatTime = (totalSeconds) => {
     const hrs = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
@@ -158,7 +178,7 @@ export default function Dashboard() {
     return { hrs, mins, secs };
   };
 
-  const { hrs, mins, secs } = formatTime(timeLeft);
+  const { hrs, mins, secs } = formatTime(dashboardContests.upcoming ? getCountdown(dashboardContests.upcoming.startTime).total : 0);
 
   const triggerToast = (message) => {
     setToastMessage(message);
@@ -845,58 +865,76 @@ export default function Dashboard() {
             </div>
 
             {/* Live Contest Sub-Card */}
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.02) 100%)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '1rem',
-              position: 'relative'
-            }}>
-              <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--error)', boxShadow: '0 0 8px var(--error)', animation: 'pulse 2s infinite' }}></div>
-                <span style={{ fontSize: '0.65rem', color: 'var(--error)', fontWeight: 800, textTransform: 'uppercase' }}>Live</span>
+            {dashboardContests.live ? (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.02) 100%)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1rem',
+                position: 'relative'
+              }}>
+                <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--error)', boxShadow: '0 0 8px var(--error)', animation: 'pulse 2s infinite' }}></div>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--error)', fontWeight: 800, textTransform: 'uppercase' }}>Live</span>
+                </div>
+                <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: 'var(--text-main)' }}>{dashboardContests.live.title}</h4>
+                <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                  Ends in {getCountdown(dashboardContests.live.endTime).hrs}h {getCountdown(dashboardContests.live.endTime).mins}m
+                </p>
+                <button
+                  onClick={() => navigate(`/contests/${dashboardContests.live.id}`)}
+                  style={{ width: '100%', padding: '0.5rem', fontSize: '0.75rem', fontWeight: 600, background: 'var(--error)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Enter Arena
+                </button>
               </div>
-              <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: 'var(--text-main)' }}>Weekly Contest 101</h4>
-              <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Ends in 45m 12s</p>
-              <button
-                onClick={() => navigate('/contests')}
-                style={{ width: '100%', padding: '0.5rem', fontSize: '0.75rem', fontWeight: 600, background: 'var(--error)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Enter Arena
-              </button>
-            </div>
+            ) : (
+              <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
+                No active contests right now.
+              </div>
+            )}
 
             {/* Upcoming Contest Sub-Card */}
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '1rem'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                <div>
-                  <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: 'var(--text-main)' }}>Biweekly Contest 34</h4>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Starts in</p>
-                </div>
-                <Trophy size={18} color="var(--primary)" />
-              </div>
-              
-              <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.75rem' }}>
-                {[ { val: hrs, label: 'h' }, { val: mins, label: 'm' }, { val: secs, label: 's' } ].map((time, idx) => (
-                  <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '4px', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', fontFamily: 'monospace' }}>{time.val}</span>
-                    <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{time.label}</span>
+            {dashboardContests.upcoming ? (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '1rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.95rem', color: 'var(--text-main)' }}>{dashboardContests.upcoming.title}</h4>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Starts in</p>
                   </div>
-                ))}
-              </div>
+                  <Trophy size={18} color="var(--primary)" />
+                </div>
+                
+                <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.75rem' }}>
+                  {[ 
+                    { val: getCountdown(dashboardContests.upcoming.startTime).hrs, label: 'h' }, 
+                    { val: getCountdown(dashboardContests.upcoming.startTime).mins, label: 'm' }, 
+                    { val: getCountdown(dashboardContests.upcoming.startTime).secs, label: 's' } 
+                  ].map((time, idx) => (
+                    <div key={idx} style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '4px', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', fontFamily: 'monospace' }}>{time.val}</span>
+                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{time.label}</span>
+                    </div>
+                  ))}
+                </div>
 
-              <button
-                onClick={() => { setRegisteredContest(true); triggerToast('Successfully registered for Biweekly Contest 34!'); setTimeout(() => navigate('/contests'), 1500); }}
-                style={{ width: '100%', padding: '0.5rem', fontSize: '0.75rem', fontWeight: 600, background: 'linear-gradient(90deg, var(--primary), #3b82f6)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Register
-              </button>
-            </div>
+                <button
+                  onClick={() => { setRegisteredContest(true); triggerToast(`Successfully registered for ${dashboardContests.upcoming.title}!`); setTimeout(() => navigate('/contests'), 1500); }}
+                  style={{ width: '100%', padding: '0.5rem', fontSize: '0.75rem', fontWeight: 600, background: 'linear-gradient(90deg, var(--primary), #3b82f6)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Register
+                </button>
+              </div>
+            ) : (
+              <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', border: '1px dashed var(--border-color)', borderRadius: 'var(--radius-sm)' }}>
+                No upcoming contests.
+              </div>
+            )}
           </div>
 
           {/* Difficulty Donut Chart */}
