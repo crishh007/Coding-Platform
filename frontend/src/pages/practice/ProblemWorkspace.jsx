@@ -214,8 +214,9 @@ export default function ProblemWorkspace() {
   useEffect(() => {
     if (submissions.length > 0 && problem) {
       const last = submissions[0];
-      if (last.code && !window.hasLoadedLastCode) {
-        window.hasLoadedLastCode = true;
+      const currentStorageKey = contestId ? `submissions_${contestId}_${id}` : `submissions_${id}`;
+      if (last.code && window.loadedCodeFor !== currentStorageKey) {
+        window.loadedCodeFor = currentStorageKey;
         setLanguage(last.language || 'python');
         setCodeMap(prev => ({ ...prev, [last.language || 'python']: last.code }));
         
@@ -232,7 +233,7 @@ export default function ProblemWorkspace() {
         }
       }
     }
-  }, [submissions, problem]);
+  }, [submissions, problem, id, contestId]);
 
   const isLocked = timeLeft === 0 && contestId;
 
@@ -311,7 +312,7 @@ export default function ProblemWorkspace() {
         client.post(`/user/problems/${problem.id}/solve`, { language: lang }).catch(() => {});
       }
     }
-  }, [id, problem, user]);
+  }, [id, contestId, problem, user]);
 
   // ── Run (single test case) ──
   const handleRun = useCallback(async () => {
