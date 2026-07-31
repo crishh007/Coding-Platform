@@ -49,7 +49,7 @@ function ContestsDashboard() {
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
-    return { title: '', description: '', startTime: '', duration: 60, maxParticipants: 50, problems: [] };
+    return { title: '', description: '', startDate: '', startTimeStr: '', duration: 60, maxParticipants: 50, problems: [] };
   });
 
   useEffect(() => {
@@ -73,7 +73,7 @@ function ContestsDashboard() {
     try {
       const payload = {
         ...createForm,
-        startTime: new Date(createForm.startTime).toISOString(),
+        startTime: new Date(`${createForm.startDate}T${createForm.startTimeStr}:00`).toISOString(),
         problems: createForm.problems.map(pid => {
           const p = globalProblems.find(x => x.id === pid);
           return { problemId: pid, title: p?.title || 'Unknown' };
@@ -605,12 +605,15 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, 
                 <textarea required value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={{ width: '100%', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', minHeight: '120px', resize: 'vertical', fontSize: '0.95rem', outline: 'none' }} placeholder="Contest rules and details..." />
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Start Date & Time</label>
-                  <input required type="datetime-local" value={form.startTime} onChange={e => setForm({...form, startTime: e.target.value})} style={{ width: '100%', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', colorScheme: 'dark', fontSize: '0.95rem', outline: 'none', cursor: 'pointer' }} />
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input required type="date" value={form.startDate || ''} onChange={e => setForm({...form, startDate: e.target.value})} style={{ flex: 1, padding: '0.75rem 0.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', colorScheme: 'dark', fontSize: '0.9rem', outline: 'none', cursor: 'pointer' }} />
+                    <input required type="time" value={form.startTimeStr || ''} onChange={e => setForm({...form, startTimeStr: e.target.value})} style={{ flex: 1, padding: '0.75rem 0.5rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', colorScheme: 'dark', fontSize: '0.9rem', outline: 'none', cursor: 'pointer' }} />
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: '0 1 120px' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Duration (mins)</label>
                   <input required type="number" min="15" value={form.duration} onChange={e => setForm({...form, duration: parseInt(e.target.value)})} style={{ width: '100%', padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '0.95rem', outline: 'none' }} />
                 </div>
