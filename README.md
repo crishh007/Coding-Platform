@@ -125,13 +125,3 @@ My role in this project was focused on **Dashboard Design and Frontend Developme
 This project is developed for educational and learning purposes.
 
 ---
-
-## 👤 Author
-
-**Pajjuri Saiteja**
-
-📧 Email: saitejapajjuri01@gmail.com
-
-🔗 GitHub: https://github.com/pajjuri-saiteja
-
-🔗 LinkedIn: https://www.linkedin.com/in/saiteja-pajjuri
