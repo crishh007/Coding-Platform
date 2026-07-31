@@ -165,3 +165,34 @@ func (h *Handler) CreateContest(c *gin.Context) {
 	})
 }
 
+func (h *Handler) DeleteContest(c *gin.Context) {
+	contestID := c.Param("id")
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var contest models.Contest
+	err := h.db.Collection("contests").FindOne(ctx, bson.M{"id": contestID}).Decode(&contest)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Contest not found"})
+		return
+	}
+
+	if contest.CreatorID != userID.(string) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to delete this contest"})
+		return
+	}
+
+	_, err = h.db.Collection("contests").DeleteOne(ctx, bson.M{"id": contestID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete contest"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Contest deleted successfully"})
+}

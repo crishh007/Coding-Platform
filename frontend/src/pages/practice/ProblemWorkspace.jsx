@@ -134,6 +134,7 @@ export default function ProblemWorkspace() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const contestId = queryParams.get('contestId');
+  const isPreview = queryParams.get('preview') === 'true';
 
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
@@ -351,11 +352,17 @@ export default function ProblemWorkspace() {
     <div className={`pr-theme ${!isDark ? 'light-mode' : ''} pr-workspace-container`}>
 
       {/* ── Left Pane ── */}
-      <div className="pr-pane left">
+      <div className="pr-pane left" style={isPreview ? { flex: 'none', width: '100%', maxWidth: '900px', margin: '0 auto', borderRight: '1px solid var(--pr-border-color)', borderLeft: '1px solid var(--pr-border-color)' } : {}}>
         <div className="pr-pane-header">
-          <Link to={contestId ? `/contests/${contestId}` : '/practice'} className="pr-back-btn">
-            <ChevronLeft size={20} />
-          </Link>
+          {isPreview ? (
+            <button className="pr-back-btn" onClick={() => window.close()} title="Close Preview">
+              <ChevronLeft size={20} /> Back
+            </button>
+          ) : (
+            <Link to={contestId ? `/contests/${contestId}` : '/practice'} className="pr-back-btn">
+              <ChevronLeft size={20} />
+            </Link>
+          )}
           <span className={activeTab === 'description' ? 'active' : ''} onClick={() => setActiveTab('description')}>Description</span>
           <span className={activeTab === 'submissions' ? 'active' : ''} onClick={() => setActiveTab('submissions')}>
             <History size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Submissions
@@ -478,128 +485,121 @@ export default function ProblemWorkspace() {
         </div>
       </div>
 
-      {/* ── Right Pane: Editor + Console ── */}
-      <div className="pr-pane" style={{ display: 'flex', flexDirection: 'column' }}>
-        {/* Toolbar */}
-        <div className="pr-editor-toolbar">
-          <select className="pr-lang-select" value={language} onChange={(e) => setLanguage(e.target.value)}>
-            {Object.entries(LANG_LABELS).map(([val, label]) => (
-              <option key={val} value={val}>{label}</option>
-            ))}
-          </select>
-          <div className="pr-editor-actions">
-            {/* Reset Code button */}
-            <button
-              className="pr-btn"
-              title="Reset to starter template"
-              onClick={() => {
-                if (window.confirm('Reset code to the starter template? Your current code will be lost.')) {
-                  setCode(TEMPLATES[language]);
-                }
-              }}
-              style={{ padding: '0.4rem 0.65rem' }}
-            >
-              <RotateCcw size={14} />
-            </button>
-            <button className="pr-btn" onClick={handleRun} disabled={isRunning || isLocked}>
-              <Play size={14} /> {isRunning ? 'Running...' : 'Run'}
-            </button>
-            <button className="pr-btn primary" onClick={handleSubmit} disabled={isSubmitting || isLocked}>
-              <Send size={14} /> {isSubmitting ? 'Submitting...' : 'Submit'}
-            </button>
+      {/* ── Right Pane ── */}
+      {!isPreview && (
+        <div className="pr-pane" style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* Toolbar */}
+          <div className="pr-editor-toolbar">
+            <select className="pr-lang-select" value={language} onChange={(e) => setLanguage(e.target.value)}>
+              {Object.entries(LANG_LABELS).map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
+            </select>
+            <div className="pr-editor-actions">
+              <button
+                className="pr-btn"
+                title="Reset to starter template"
+                onClick={() => {
+                  if (window.confirm('Reset code to the starter template? Your current code will be lost.')) {
+                    setCode(TEMPLATES[language]);
+                  }
+                }}
+                style={{ padding: '0.4rem 0.65rem' }}
+              >
+                <RotateCcw size={14} />
+              </button>
+              <button className="pr-btn" onClick={handleRun} disabled={isRunning || isLocked}>
+                <Play size={14} /> {isRunning ? 'Running...' : 'Run'}
+              </button>
+              <button className="pr-btn primary" onClick={handleSubmit} disabled={isSubmitting || isLocked}>
+                <Send size={14} /> {isSubmitting ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Editor */}
-        <div className="pr-pane-content no-pad" style={{ flex: 1 }}>
-          <Editor
-            height="100%"
-            theme={isDark ? 'vs-dark' : 'light'}
-            language={LANG_MONACO[language] || language}
-            value={code}
-            onChange={(val) => setCode(val)}
-            options={{ minimap: { enabled: false }, fontSize: 14, padding: { top: 16 }, fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
-          />
-        </div>
+          {/* Editor */}
+          <div className="pr-pane-content no-pad" style={{ flex: 1 }}>
+            <Editor
+              height="100%"
+              theme={isDark ? 'vs-dark' : 'light'}
+              language={LANG_MONACO[language] || language}
+              value={code}
+              onChange={(val) => setCode(val)}
+              options={{ minimap: { enabled: false }, fontSize: 14, padding: { top: 16 }, fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
+            />
+          </div>
 
-        {/* Console / Testcase Panel */}
-        <div className="pr-console-panel" style={{ height: showConsole ? '280px' : '42px', transition: 'height 0.25s ease', display: 'flex', flexDirection: 'column' }}>
-          <div className="pr-console-header">
-            <span style={{ cursor: 'pointer', userSelect: 'none' }} onClick={() => setShowConsole(!showConsole)}>
-              {showConsole ? '▼' : '▲'} Testcases &amp; Console
-            </span>
-            {runStatus && (
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: statusColor(runStatus) }}>
-                {runStatus} {runTime && <span style={{ fontWeight: 400, color: 'var(--pr-text-secondary)', marginLeft: '0.5rem' }}>{runTime}</span>}
+          {/* Console / Testcase Panel */}
+          <div className="pr-console-panel" style={{ height: showConsole ? '280px' : '42px', transition: 'height 0.25s ease', display: 'flex', flexDirection: 'column' }}>
+            <div className="pr-console-header">
+              <span style={{ cursor: 'pointer', userSelect: 'none' }} onClick={() => setShowConsole(!showConsole)}>
+                {showConsole ? '▼' : '▲'} Testcases &amp; Console
               </span>
-            )}
-          </div>
+              {runStatus && (
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: statusColor(runStatus) }}>
+                  {runStatus} {runTime && <span style={{ fontWeight: 400, color: 'var(--pr-text-secondary)', marginLeft: '0.5rem' }}>{runTime}</span>}
+                </span>
+              )}
+            </div>
 
-          {showConsole && (
-            <div className="pr-console-body" style={{ flex: 1, overflowY: 'auto' }}>
-              {/* Testcase Selector — show only first 3 (rest are hidden, evaluated on Submit) */}
-              <div className="pr-tc-tabs">
-                {problem.testCases && problem.testCases.slice(0, 3).map((tc, idx) => (
-                  <button
-                    key={idx}
-                    className={`pr-tc-tab ${activeTestCaseTab === idx ? 'active' : ''}`}
-                    onClick={() => setActiveTestCaseTab(idx)}
-                  >
-                    Case {idx + 1}
-                  </button>
-                ))}
-                {problem.testCases && problem.testCases.length > 3 && (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--pr-text-secondary)', alignSelf: 'center', marginLeft: '0.5rem', fontStyle: 'italic' }}>
-                    + {problem.testCases.length - 3} hidden cases (tested on Submit)
-                  </span>
-                )}
-              </div>
+            {showConsole && (
+              <div className="pr-console-body" style={{ flex: 1, overflowY: 'auto' }}>
+                <div className="pr-tc-tabs">
+                  {problem.testCases && problem.testCases.slice(0, 3).map((tc, idx) => (
+                    <button
+                      key={idx}
+                      className={`pr-tc-tab ${activeTestCaseTab === idx ? 'active' : ''}`}
+                      onClick={() => setActiveTestCaseTab(idx)}
+                    >
+                      Case {idx + 1}
+                    </button>
+                  ))}
+                  {problem.testCases && problem.testCases.length > 3 && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--pr-text-secondary)', alignSelf: 'center', marginLeft: '0.5rem', fontStyle: 'italic' }}>
+                      + {problem.testCases.length - 3} hidden cases (tested on Submit)
+                    </span>
+                  )}
+                </div>
 
-              <div className="pr-tc-content" style={{ marginTop: '1rem' }}>
-                {problem.testCases?.[activeTestCaseTab] && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
-                    {/* Input */}
-                    <div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--pr-text-secondary)', marginBottom: '0.3rem', fontWeight: 600 }}>Input</div>
-                      <pre className="pr-example-box" style={{ margin: 0, padding: '0.5rem', fontSize: '0.85rem' }}>
-                        {problem.testCases[activeTestCaseTab].input}
-                      </pre>
-                    </div>
-
-                    {/* Expected */}
-                    <div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--pr-text-secondary)', marginBottom: '0.3rem', fontWeight: 600 }}>Expected</div>
-                      <pre className="pr-example-box" style={{ margin: 0, padding: '0.5rem', fontSize: '0.85rem' }}>
-                        {problem.testCases[activeTestCaseTab].output}
-                      </pre>
-                    </div>
-
-                    {/* Your Output (after running) */}
-                    {runStatus && runStatus !== 'Judging' && (
+                <div className="pr-tc-content" style={{ marginTop: '1rem' }}>
+                  {problem.testCases?.[activeTestCaseTab] && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
                       <div>
-                        <div style={{ fontSize: '0.75rem', marginBottom: '0.3rem', fontWeight: 600, color: statusColor(runStatus) }}>
-                          Your Output
-                        </div>
-                        <pre className="pr-example-box" style={{ margin: 0, padding: '0.5rem', fontSize: '0.85rem', background: (runStatus === 'Accepted') ? 'rgba(74,222,128,0.05)' : 'rgba(248,113,113,0.05)', borderColor: (runStatus === 'Accepted') ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)' }}>
-                          {runError || runOutput || '—'}
+                        <div style={{ fontSize: '0.75rem', color: 'var(--pr-text-secondary)', marginBottom: '0.3rem', fontWeight: 600 }}>Input</div>
+                        <pre className="pr-example-box" style={{ margin: 0, padding: '0.5rem', fontSize: '0.85rem' }}>
+                          {problem.testCases[activeTestCaseTab].input}
                         </pre>
                       </div>
-                    )}
+                      <div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--pr-text-secondary)', marginBottom: '0.3rem', fontWeight: 600 }}>Expected</div>
+                        <pre className="pr-example-box" style={{ margin: 0, padding: '0.5rem', fontSize: '0.85rem' }}>
+                          {problem.testCases[activeTestCaseTab].output}
+                        </pre>
+                      </div>
+                      {runStatus && runStatus !== 'Judging' && (
+                        <div>
+                          <div style={{ fontSize: '0.75rem', marginBottom: '0.3rem', fontWeight: 600, color: statusColor(runStatus) }}>
+                            Your Output
+                          </div>
+                          <pre className="pr-example-box" style={{ margin: 0, padding: '0.5rem', fontSize: '0.85rem', background: (runStatus === 'Accepted') ? 'rgba(74,222,128,0.05)' : 'rgba(248,113,113,0.05)', borderColor: (runStatus === 'Accepted') ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)' }}>
+                            {runError || runOutput || '—'}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {runStatus === 'Judging' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', color: 'var(--pr-text-secondary)' }}>
+                    <div style={{ width: 16, height: 16, border: '2px solid var(--pr-primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    Running your code...
                   </div>
                 )}
               </div>
-
-              {/* Judging spinner */}
-              {runStatus === 'Judging' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', color: 'var(--pr-text-secondary)' }}>
-                  <div style={{ width: 16, height: 16, border: '2px solid var(--pr-primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                  Running your code...
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Submit Modal ── */}
       {showSubmitModal && (
@@ -608,7 +608,6 @@ export default function ProblemWorkspace() {
             <button onClick={() => setShowSubmitModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--pr-text-secondary)', cursor: 'pointer', fontSize: '1.4rem', lineHeight: 1 }}>✕</button>
 
             {!submitResult ? (
-              /* Loading state */
               <div style={{ textAlign: 'center', padding: '2rem 0' }}>
                 <div style={{ width: 52, height: 52, border: '4px solid var(--pr-border-color)', borderTopColor: 'var(--pr-primary)', borderRadius: '50%', margin: '0 auto 1.5rem', animation: 'spin 1s linear infinite' }} />
                 <h2 style={{ marginBottom: '1.25rem' }}>Evaluating All Test Cases...</h2>
@@ -620,9 +619,7 @@ export default function ProblemWorkspace() {
                 </p>
               </div>
             ) : (
-              /* Result */
               <div>
-                {/* Header */}
                 <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                   <h1 style={{ fontSize: '2rem', fontWeight: 800, color: statusColor(submitResult.status), textShadow: `0 0 20px ${statusColor(submitResult.status)}55` }}>
                     {submitResult.status === 'Accepted' ? '🎉 Accepted!' : submitResult.status}
@@ -632,7 +629,6 @@ export default function ProblemWorkspace() {
                   </p>
                 </div>
 
-                {/* Stats row */}
                 {submitResult.status === 'Accepted' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                     {[

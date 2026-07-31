@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Clock, Calendar, Users, Award, Zap, ChevronRight, Medal, AlertTriangle } from 'lucide-react';
+import { Trophy, Clock, Calendar, Users, Award, Zap, ChevronRight, Medal, AlertTriangle, Eye, Trash2 } from 'lucide-react';
 import client from '../../api/client';
 
 class ErrorBoundary extends React.Component {
@@ -27,6 +27,9 @@ function ContestsDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('contests'); // 'contests' or 'leaderboard'
   
+  const userStr = localStorage.getItem('user');
+  const currentUser = userStr ? JSON.parse(userStr) : null;
+
   const [upcomingContests, setUpcomingContests] = useState([]);
   const [pastContests, setPastContests] = useState([]);
   const [ongoingContests, setOngoingContests] = useState([]);
@@ -67,6 +70,20 @@ function ContestsDashboard() {
     } catch (err) {
       console.error(err);
       setModalError(err.response?.data?.error || "Failed to create contest. Please try again.");
+    }
+  };
+
+  const handleDeleteContest = async (id, e) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this custom contest?")) return;
+    try {
+      await client.delete(`/contests/${id}`);
+      setUpcomingContests(prev => prev.filter(c => c.id !== id));
+      setOngoingContests(prev => prev.filter(c => c.id !== id));
+      setPastContests(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || "Failed to delete contest.");
     }
   };
 
@@ -277,13 +294,20 @@ function ContestsDashboard() {
                         </div>
                       </div>
                       
-                      <button 
-                        className="pr-btn" 
-                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center', background: 'var(--error)', color: 'white', border: 'none' }}
-                        onClick={() => navigate(`/contests/${c.id}`)}
-                      >
-                        Enter Arena
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {c.isCustom && currentUser && c.creatorId === currentUser.id && (
+                          <button 
+                            onClick={(e) => handleDeleteContest(c.id, e)}
+                            className="pr-btn" 
+                            style={{ padding: '0.4rem 0.8rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                        <button className="pr-btn primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => navigate(`/contests/${c.id}`)}>
+                          Enter Arena
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -314,14 +338,24 @@ function ContestsDashboard() {
                         <Users size={16} /> {c.maxParticipants} Registered
                       </div>
                     </div>
-                    
-                    <button 
-                      className="pr-btn primary" 
-                      style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
-                      onClick={() => navigate(`/contests/${c.id}`)}
-                    >
-                      View Details
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+                      {c.isCustom && currentUser && c.creatorId === currentUser.id && (
+                        <button 
+                          onClick={(e) => handleDeleteContest(c.id, e)}
+                          className="pr-btn" 
+                          style={{ padding: '0.4rem 0.8rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                      <button 
+                        className="pr-btn primary" 
+                        style={{ flex: 1, justifyContent: 'center' }}
+                        onClick={() => navigate(`/contests/${c.id}`)}
+                      >
+                        View Details
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -599,9 +633,19 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, 
                           </div>
                           <h4 style={{ margin: 0, fontSize: '1rem', color: isSelected ? 'var(--primary)' : 'var(--text-main)' }}>{p.title}</h4>
                         </div>
-                        <span className={`badge badge-${p.difficulty === 'Easy' ? 'success' : (p.difficulty === 'Medium' ? 'warning' : 'error')}`} style={{ fontSize: '0.7rem' }}>
-                          {p.difficulty}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <button 
+                            type="button"
+                            title="Preview Problem"
+                            onClick={(e) => { e.stopPropagation(); window.open(`/practice/problems/${p.id}?preview=true`, '_blank'); }}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.2rem' }}
+                          >
+                            <Eye size={16} className="hover:text-primary transition-colors" />
+                          </button>
+                          <span className={`badge badge-${p.difficulty === 'Easy' ? 'success' : (p.difficulty === 'Medium' ? 'warning' : 'error')}`} style={{ fontSize: '0.7rem' }}>
+                            {p.difficulty}
+                          </span>
+                        </div>
                       </div>
                       
                       {p.topics && p.topics.length > 0 && (
