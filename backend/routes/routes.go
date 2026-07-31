@@ -87,6 +87,7 @@ func SetupRouter(h *handlers.Handler) *gin.Engine {
 			protected.DELETE("/contests/:id", h.DeleteContest)
 			protected.GET("/leaderboard/global", h.GetGlobalLeaderboard)
 			protected.GET("/contests/:id", h.GetContestDetails)
+			protected.GET("/contests/:id/leaderboard", h.GetContestLeaderboard)
 			
 			// Teams
 			protected.POST("/teams", h.CreateTeam)

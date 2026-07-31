@@ -27,28 +27,28 @@ export default function ContestArena() {
   const [solvedProblems, setSolvedProblems] = useState({});
 
   useEffect(() => {
+    // Fetch Contest Details
     client.get(`/contests/${id}`)
       .then(res => {
         if (res.data) {
-          setContest(res.data);
+          setContest(prev => ({...prev, ...res.data}));
           if (res.data.endTime) {
             const end = new Date(res.data.endTime).getTime();
             const now = new Date().getTime();
             setTimeLeft(Math.max(0, Math.floor((end - now) / 1000)));
           }
           
-          // Mock data: Randomly mark a problem as solved for UI demonstration
-          if (res.data.problems && res.data.problems.length > 0) {
-            const mockedSolved = {};
-            // Just marking the first one as solved if it exists to show the UI
-            if (res.data.problems.length > 1) {
-              mockedSolved[res.data.problems[0].problemId] = {
-                solved: true,
-                gainedPoints: res.data.problems[0].points
-              };
-            }
-            setSolvedProblems(mockedSolved);
+          // Determine solved problems from localStorage (since workspace saves them there)
+          const solvedIds = JSON.parse(localStorage.getItem('solved_problems') || '[]');
+          const solvedMap = {};
+          if (res.data.problems) {
+            res.data.problems.forEach(p => {
+              if (solvedIds.includes(p.problemId)) {
+                solvedMap[p.problemId] = { solved: true, gainedPoints: p.points };
+              }
+            });
           }
+          setSolvedProblems(solvedMap);
         }
       })
       .catch(err => {
@@ -56,6 +56,27 @@ export default function ContestArena() {
         setError("Failed to load contest arena.");
       })
       .finally(() => setLoading(false));
+
+    // Fetch Live Leaderboard
+    client.get(`/contests/${id}/leaderboard`)
+      .then(res => {
+        if (res.data) {
+          setContest(prev => ({ ...prev, leaderboard: res.data }));
+        }
+      })
+      .catch(console.error);
+      
+    // Auto-refresh leaderboard every 30 seconds
+    const interval = setInterval(() => {
+      client.get(`/contests/${id}/leaderboard`)
+        .then(res => {
+          if (res.data) {
+            setContest(prev => ({ ...prev, leaderboard: res.data }));
+          }
+        }).catch(() => {});
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [id]);
 
   useEffect(() => {

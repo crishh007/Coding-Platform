@@ -25,6 +25,7 @@ type ExecuteRequest struct {
 	Language  string `json:"language"`
 	Code      string `json:"code"`
 	Input     string `json:"input"` // used only for Run (single test case)
+	ContestId string `json:"contestId,omitempty"`
 }
 
 type TestCaseResult struct {
@@ -337,6 +338,46 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 	// Final status
 	if totalPassed == len(problem.TestCases) {
 		overallStatus = "Accepted"
+	}
+
+	// ── CONTEST SUBMISSION TRACKING ──
+	if req.ContestId != "" {
+		userID, exists := c.Get("user_id")
+		if exists && userID != nil {
+			
+			// Calculate points
+			points := 0
+			if overallStatus == "Accepted" {
+				// We need the points for this problem from the contest. 
+				// We'll fetch the contest to get the points.
+				var contest models.Contest
+				err := h.db.Collection("contests").FindOne(context.Background(), bson.M{"_id": req.ContestId}).Decode(&contest)
+				if err == nil && contest.Status == "active" {
+					for _, cp := range contest.Problems {
+						if cp.ProblemID == req.ProblemId {
+							points = cp.Points
+							break
+						}
+					}
+				}
+			}
+
+			submission := models.ContestSubmission{
+				UserID:    userID.(string),
+				ContestID: req.ContestId,
+				ProblemID: req.ProblemId,
+				Code:      req.Code,
+				Language:  req.Language,
+				Status:    overallStatus,
+				Score:     points,
+			}
+			submission.InitID()
+			
+			_, err = h.db.Collection("contest_submissions").InsertOne(context.Background(), submission)
+			if err != nil {
+				fmt.Println("Error inserting contest submission:", err)
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, SubmitResponse{

@@ -301,11 +301,17 @@ export default function ProblemWorkspace() {
     }, 300);
 
     try {
-      const res = await client.post('/judge/submit', {
+      const payload = {
         problemId: problem.id,
         language,
         code,
-      });
+      };
+      
+      if (contestId) {
+        payload.contestId = contestId;
+      }
+
+      const res = await client.post('/judge/submit', payload);
 
       clearInterval(interval);
       setSubmitProgress(100);

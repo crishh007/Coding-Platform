@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"sort"
 	"time"
 
 	"codemastery-learning-system/models"
@@ -200,4 +201,78 @@ func (h *Handler) DeleteContest(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Contest deleted successfully"})
+}
+
+func (h *Handler) GetContestLeaderboard(c *gin.Context) {
+	contestID := c.Param("id")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cursor, err := h.db.Collection("contest_submissions").Find(ctx, bson.M{"contestId": contestID, "status": "Accepted"})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch submissions"})
+		return
+	}
+
+	var submissions []models.ContestSubmission
+	if err = cursor.All(ctx, &submissions); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode submissions"})
+		return
+	}
+
+	// Calculate scores
+	userScores := make(map[string]int)
+	userProblems := make(map[string]map[string]bool)
+
+	for _, sub := range submissions {
+		if userProblems[sub.UserID] == nil {
+			userProblems[sub.UserID] = make(map[string]bool)
+		}
+		// Only add score if problem hasn't been solved yet by this user
+		if !userProblems[sub.UserID][sub.ProblemID] {
+			userScores[sub.UserID] += sub.Score
+			userProblems[sub.UserID][sub.ProblemID] = true
+		}
+	}
+
+	// Now build the leaderboard array and fetch user handles
+	type LeaderboardEntry struct {
+		Rank    int    `json:"rank"`
+		Handle  string `json:"handle"`
+		Score   int    `json:"score"`
+		Penalty string `json:"penalty"`
+	}
+
+	var leaderboard []LeaderboardEntry
+
+	for userID, score := range userScores {
+		var user models.User
+		err := h.db.Collection("users").FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+		handle := "Unknown"
+		if err == nil {
+			handle = user.Username
+		}
+
+		leaderboard = append(leaderboard, LeaderboardEntry{
+			Handle:  handle,
+			Score:   score,
+			Penalty: "00:00:00", // Simplified penalty for now
+		})
+	}
+
+	// Sort by score descending
+	sort.Slice(leaderboard, func(i, j int) bool {
+		return leaderboard[i].Score > leaderboard[j].Score
+	})
+
+	// Assign ranks
+	for i := range leaderboard {
+		leaderboard[i].Rank = i + 1
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    leaderboard,
+	})
 }
