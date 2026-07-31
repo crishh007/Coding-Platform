@@ -233,6 +233,8 @@ export default function ProblemWorkspace() {
     }
   }, [submissions, problem]);
 
+  const isLocked = timeLeft === 0 && contestId;
+
   // Anti-Cheat logic
   useEffect(() => {
     if (!contestId || isLocked || isPreview) return;
@@ -279,8 +281,6 @@ export default function ProblemWorkspace() {
     const s = String(t % 60).padStart(2, '0');
     return `${h}:${m}:${s}`;
   };
-
-  const isLocked = timeLeft === 0 && contestId;
 
   const saveSubmission = useCallback((status, time, lang, codeContent, passed, total) => {
     const sub = { 
