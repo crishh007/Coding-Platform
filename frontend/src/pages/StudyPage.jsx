@@ -139,6 +139,7 @@ export default function StudyPage() {
   // Hydrated lesson details from database
   const [lessonData, setLessonData] = useState(null);
   const [loadingLesson, setLoadingLesson] = useState(false);
+  const [relatedProblems, setRelatedProblems] = useState([]);
 
   // Active tab: 'explanation' | 'visuals' | 'code' | 'quiz' | 'practice'
   const [activeTab, setActiveTab] = useState('explanation');
@@ -295,12 +296,27 @@ export default function StudyPage() {
       Promise.all([
         client.get(`/lessons/${activeId}`),
         client.get(`/lessons/${activeId}/quiz/submissions`).catch(() => []),
-        client.get(`/lessons/${activeId}/practice/submissions`).catch(() => [])
+        client.get(`/lessons/${activeId}/practice/submissions`).catch(() => []),
+        client.get('/problems').catch(() => [])
       ])
-        .then(([res, qSubmissions, pSubmissions]) => {
+        .then(([res, qSubmissions, pSubmissions, allProblems]) => {
           setLessonData(res);
           setQuizHistory(qSubmissions || []);
           setPracticeHistory(pSubmissions || []);
+          
+          if (res && allProblems && allProblems.length > 0) {
+            const lessonTitle = (res.title || '').toLowerCase();
+            const matched = allProblems.filter(p => {
+              const probTitle = (p.title || '').toLowerCase();
+              const probTopics = (p.topics || []).map(t => t.toLowerCase());
+              return probTitle.includes(lessonTitle) || 
+                     lessonTitle.includes(probTitle) ||
+                     probTopics.some(t => lessonTitle.includes(t));
+            });
+            setRelatedProblems(matched.length > 0 ? matched.slice(0, 3) : allProblems.slice(0, 3));
+          } else {
+            setRelatedProblems([]);
+          }
           
           // Reset states on lesson change
           setSimStepIndex(0);
@@ -2383,34 +2399,37 @@ export default function StudyPage() {
         </div>
 
         {/* Related Problems list */}
-        <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <h4 style={{ fontSize: '0.9rem', margin: 0 }}>Related Coding Problems</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {[
-              { title: 'Search in Rotated Sorted Array', diff: 'Medium', color: 'var(--warning)' },
-              { title: 'Find First and Last Position', diff: 'Medium', color: 'var(--warning)' },
-              { title: 'Peak Index in a Mountain Array', diff: 'Easy', color: 'var(--success)' },
-            ].map((p, i) => (
-              <div 
-                key={i} 
-                style={{
-                  padding: '0.625rem 0.75rem',
-                  background: 'var(--box-bg)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-sm)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  cursor: 'pointer'
-                }}
-                onClick={() => alert(`Redirecting to: ${p.title} sandbox`)}
-              >
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 550 }}>{p.title}</span>
-                <span style={{ fontSize: '0.65rem', color: p.color, fontWeight: 700 }}>{p.diff}</span>
-              </div>
-            ))}
+        {relatedProblems.length > 0 && (
+          <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <h4 style={{ fontSize: '0.9rem', margin: 0 }}>Related Coding Problems</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {relatedProblems.map((p, i) => {
+                let diffColor = 'var(--warning)';
+                if (p.difficulty === 'Easy') diffColor = 'var(--success)';
+                if (p.difficulty === 'Hard') diffColor = 'var(--error)';
+                return (
+                  <div 
+                    key={p.id || i} 
+                    style={{
+                      padding: '0.625rem 0.75rem',
+                      background: 'var(--box-bg)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => navigate(`/practice/problems/${p.id}`)}
+                  >
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 550 }}>{p.title}</span>
+                    <span style={{ fontSize: '0.65rem', color: diffColor, fontWeight: 700 }}>{p.difficulty}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
     </div>
