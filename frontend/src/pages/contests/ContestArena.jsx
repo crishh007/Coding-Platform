@@ -22,6 +22,8 @@ export default function ContestArena() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+
   // Mocking "Gained Points" and "Solved Status" for demonstration.
   // In a real app, this would come from a submissions/user-progress API.
   const [solvedProblems, setSolvedProblems] = useState({});
@@ -38,17 +40,8 @@ export default function ContestArena() {
             setTimeLeft(Math.max(0, Math.floor((end - now) / 1000)));
           }
           
-          // Determine solved problems from localStorage (since workspace saves them there)
-          const solvedIds = JSON.parse(localStorage.getItem('solved_problems') || '[]');
-          const solvedMap = {};
-          if (res.data.problems) {
-            res.data.problems.forEach(p => {
-              if (solvedIds.includes(p.problemId)) {
-                solvedMap[p.problemId] = { solved: true, gainedPoints: p.points };
-              }
-            });
-          }
-          setSolvedProblems(solvedMap);
+          // Initially set an empty map, it will be populated when leaderboard fetches
+          setSolvedProblems({});
         }
       })
       .catch(err => {
@@ -62,6 +55,18 @@ export default function ContestArena() {
       .then(res => {
         if (res.data) {
           setContest(prev => ({ ...prev, leaderboard: res.data }));
+          
+          // Determine solved problems for current user from leaderboard
+          const userEntry = res.data.find(l => l.handle === currentUser?.username || l.userId === currentUser?.id);
+          if (userEntry && userEntry.solvedProblems) {
+             const solvedMap = {};
+             contest.problems?.forEach(p => {
+                if (userEntry.solvedProblems.includes(p.problemId)) {
+                   solvedMap[p.problemId] = { solved: true, gainedPoints: p.points };
+                }
+             });
+             setSolvedProblems(solvedMap);
+          }
         }
       })
       .catch(console.error);
@@ -72,6 +77,20 @@ export default function ContestArena() {
         .then(res => {
           if (res.data) {
             setContest(prev => ({ ...prev, leaderboard: res.data }));
+            
+            // Also refresh solved problems
+            const userEntry = res.data.find(l => l.handle === currentUser?.username || l.userId === currentUser?.id);
+            if (userEntry && userEntry.solvedProblems) {
+               setSolvedProblems(prevSolved => {
+                  const newSolved = { ...prevSolved };
+                  contest.problems?.forEach(p => {
+                     if (userEntry.solvedProblems.includes(p.problemId)) {
+                        newSolved[p.problemId] = { solved: true, gainedPoints: p.points };
+                     }
+                  });
+                  return newSolved;
+               });
+            }
           }
         }).catch(() => {});
     }, 30000);

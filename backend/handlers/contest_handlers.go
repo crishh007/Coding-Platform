@@ -277,10 +277,12 @@ func (h *Handler) GetContestLeaderboard(c *gin.Context) {
 
 	// Now build the leaderboard array and fetch user handles
 	type LeaderboardEntry struct {
-		Rank    int    `json:"rank"`
-		Handle  string `json:"handle"`
-		Score   int    `json:"score"`
-		Penalty string `json:"penalty"`
+		Rank           int      `json:"rank"`
+		Handle         string   `json:"handle"`
+		Score          int      `json:"score"`
+		Penalty        string   `json:"penalty"`
+		UserID         string   `json:"userId"`
+		SolvedProblems []string `json:"solvedProblems"`
 	}
 
 	var leaderboard []LeaderboardEntry
@@ -293,10 +295,17 @@ func (h *Handler) GetContestLeaderboard(c *gin.Context) {
 			handle = user.Username
 		}
 
+		var solved []string
+		for probId := range userProblems[userID] {
+			solved = append(solved, probId)
+		}
+
 		leaderboard = append(leaderboard, LeaderboardEntry{
-			Handle:  handle,
-			Score:   score,
-			Penalty: "00:00:00", // Simplified penalty for now
+			Handle:         handle,
+			Score:          score,
+			Penalty:        "00:00:00", // Simplified penalty for now
+			UserID:         userID,
+			SolvedProblems: solved,
 		})
 	}
 
