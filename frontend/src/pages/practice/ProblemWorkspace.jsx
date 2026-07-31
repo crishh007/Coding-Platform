@@ -359,7 +359,7 @@ export default function ProblemWorkspace() {
               <ChevronLeft size={20} /> Back
             </button>
           ) : (
-            <Link to={contestId ? `/contests/${contestId}` : '/practice'} className="pr-back-btn">
+            <Link to={contestId ? `/contests/${contestId}/arena` : '/practice'} className="pr-back-btn">
               <ChevronLeft size={20} />
             </Link>
           )}
