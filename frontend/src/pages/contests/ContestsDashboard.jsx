@@ -36,6 +36,7 @@ function ContestsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [modalError, setModalError] = useState(null);
   const [globalProblems, setGlobalProblems] = useState([]);
   const [createForm, setCreateForm] = useState({
     title: '', description: '', startTime: '', duration: 60, maxParticipants: 50, problems: []
@@ -50,6 +51,7 @@ function ContestsDashboard() {
 
   const handleCreateContest = async (e) => {
     e.preventDefault();
+    setModalError(null);
     try {
       const payload = {
         ...createForm,
@@ -64,7 +66,7 @@ function ContestsDashboard() {
       window.location.reload(); // Quick refresh to see the new contest
     } catch (err) {
       console.error(err);
-      alert("Failed to create contest.");
+      setModalError(err.response?.data?.error || "Failed to create contest. Please try again.");
     }
   };
 
@@ -73,23 +75,35 @@ function ContestsDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const [contestsRes, leaderboardRes, teamsRes, violationsRes] = await Promise.all([
+        const results = await Promise.allSettled([
           client.get('/contests'),
           client.get('/leaderboard/global'),
           client.get('/teams'),
           client.get('/violations')
         ]);
 
-        if (contestsRes.data?.data) {
-          setUpcomingContests(contestsRes.data.data.upcoming || []);
-          setPastContests(contestsRes.data.data.past || []);
-          setOngoingContests(contestsRes.data.data.ongoing || []);
+        const [contestsRes, leaderboardRes, teamsRes, violationsRes] = results;
+
+        if (contestsRes.status === 'fulfilled' && contestsRes.value.data?.data) {
+          setUpcomingContests(contestsRes.value.data.data.upcoming || []);
+          setPastContests(contestsRes.value.data.data.past || []);
+          setOngoingContests(contestsRes.value.data.data.ongoing || []);
+        } else if (contestsRes.status === 'rejected') {
+          console.error("Failed to fetch contests:", contestsRes.reason);
+          setError("Failed to load contests data. Please make sure you are logged in.");
         }
-        if (leaderboardRes.data?.data) setLeaderboard(leaderboardRes.data.data);
-        if (teamsRes.data?.data) setTeams(teamsRes.data.data);
-        if (violationsRes.data?.data) setViolations(violationsRes.data.data);
+
+        if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.data?.data) {
+          setLeaderboard(leaderboardRes.value.data.data);
+        }
+        if (teamsRes.status === 'fulfilled' && teamsRes.value.data?.data) {
+          setTeams(teamsRes.value.data.data);
+        }
+        if (violationsRes.status === 'fulfilled' && violationsRes.value.data?.data) {
+          setViolations(violationsRes.value.data.data);
+        }
       } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
+        console.error("Dashboard fetch error:", err);
         setError("Failed to load dashboard data. Please make sure you are logged in.");
       } finally {
         setLoading(false);
@@ -479,13 +493,14 @@ function ContestsDashboard() {
         setForm={setCreateForm}
         problems={globalProblems}
         onSubmit={handleCreateContest}
+        error={modalError}
       />
     </div>
   );
 }
 
 // Minimal Create Contest Modal inline component
-function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit }) {
+function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, error }) {
   if (!show) return null;
   
   const toggleProblem = (id) => {
@@ -504,6 +519,11 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit }
     }}>
       <div className="card" style={{ width: '100%', maxWidth: '500px', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Create Custom Contest</h2>
+        {error && (
+          <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '4px', fontSize: '0.9rem' }}>
+            {error}
+          </div>
+        )}
         <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Contest Title</label>
