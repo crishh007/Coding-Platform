@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"codemastery-learning-system/models"
 )
 
 func main() {
@@ -26,12 +27,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var results []bson.M
+	var results []models.ContestSubmission
 	if err = cursor.All(ctx, &results); err != nil {
-		log.Fatal(err)
+		log.Fatal("Decode Error: ", err)
 	}
-	fmt.Printf("Found %d submissions\n", len(results))
-	for _, r := range results {
-		fmt.Printf("- UserID: %v, ContestID: %v, ProblemID: %v, Status: %v, Score: %v\n", r["userid"], r["contestid"], r["problemid"], r["status"], r["score"])
+	for _, s := range results {
+		fmt.Printf("Sub: User=%s Prob=%s Score=%d Status=%s\n", s.UserID, s.ProblemID, s.Score, s.Status)
 	}
 }
