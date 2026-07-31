@@ -15,6 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"codemastery-learning-system/models"
 )
 
 // ─────────────────────────────────────────────
@@ -360,15 +361,24 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 					}
 					return []byte(secret), nil
 				})
+				if err != nil {
+					fmt.Println("JWT Parse Error in Judge:", err)
+				}
 				if err == nil && token.Valid {
 					if claims, ok := token.Claims.(jwt.MapClaims); ok {
 						if uid, ok := claims["user_id"].(string); ok {
 							userID = uid
+						} else {
+							fmt.Println("user_id claim not found or not a string")
 						}
 					}
 				}
 			}
+		} else {
+			fmt.Println("No Authorization header found in SubmitCode")
 		}
+
+		fmt.Println("Extracted userID:", userID, "for contest:", req.ContestId)
 
 		if userID != "" {
 			
@@ -398,11 +408,17 @@ func (h *Handler) SubmitCode(c *gin.Context) {
 			}
 			submission.InitID()
 			
-			_, err = h.db.Collection("contest_submissions").InsertOne(context.Background(), submission)
+			res, err := h.db.Collection("contest_submissions").InsertOne(context.Background(), submission)
 			if err != nil {
 				fmt.Println("Error inserting contest submission:", err)
+			} else {
+				fmt.Println("Successfully inserted contest submission:", res.InsertedID)
 			}
+		} else {
+			fmt.Println("userID is empty, skipping submission tracking")
 		}
+	} else {
+		fmt.Println("req.ContestId is empty, skipping contest tracking")
 	}
 
 	c.JSON(http.StatusOK, SubmitResponse{
