@@ -199,7 +199,8 @@ export default function ProblemWorkspace() {
         .catch(console.error);
     }
 
-    const stored = JSON.parse(localStorage.getItem(`submissions_${id}`) || '[]');
+    const storageKey = contestId ? `submissions_${contestId}_${id}` : `submissions_${id}`;
+    const stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
     setSubmissions(stored);
   }, [id, contestId]);
   useEffect(() => {
@@ -294,7 +295,8 @@ export default function ProblemWorkspace() {
     };
     setSubmissions((prev) => {
       const next = [sub, ...prev];
-      localStorage.setItem(`submissions_${id}`, JSON.stringify(next));
+      const storageKey = contestId ? `submissions_${contestId}_${id}` : `submissions_${id}`;
+      localStorage.setItem(storageKey, JSON.stringify(next));
       return next;
     });
     if (status === 'Accepted' && problem) {
