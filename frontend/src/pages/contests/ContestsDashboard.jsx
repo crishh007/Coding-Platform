@@ -118,23 +118,31 @@ function ContestsDashboard() {
 
         const [contestsRes, leaderboardRes, teamsRes, violationsRes] = results;
 
-        if (contestsRes.status === 'fulfilled' && contestsRes.value.data?.data) {
-          setUpcomingContests(contestsRes.value.data.data.upcoming || []);
-          setPastContests(contestsRes.value.data.data.past || []);
-          setOngoingContests(contestsRes.value.data.data.ongoing || []);
+        if (contestsRes.status === 'fulfilled' && contestsRes.value?.data) {
+          setUpcomingContests(contestsRes.value.data.upcoming || []);
+          setPastContests(contestsRes.value.data.past || []);
+          setOngoingContests(contestsRes.value.data.ongoing || []);
         } else if (contestsRes.status === 'rejected') {
           console.error("Failed to fetch contests:", contestsRes.reason);
           setError("Failed to load contests data. Please make sure you are logged in.");
         }
 
-        if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value.data?.data) {
-          setLeaderboard(leaderboardRes.value.data.data);
+        if (leaderboardRes.status === 'fulfilled' && leaderboardRes.value?.data) {
+          setLeaderboard(leaderboardRes.value.data);
+        } else if (leaderboardRes.status === 'rejected') {
+          console.error("Failed to fetch leaderboard:", leaderboardRes.reason);
         }
-        if (teamsRes.status === 'fulfilled' && teamsRes.value.data?.data) {
-          setTeams(teamsRes.value.data.data);
+
+        if (teamsRes.status === 'fulfilled' && teamsRes.value?.data) {
+          setTeams(teamsRes.value.data);
+        } else if (teamsRes.status === 'rejected') {
+          console.error("Failed to fetch teams:", teamsRes.reason);
         }
-        if (violationsRes.status === 'fulfilled' && violationsRes.value.data?.data) {
-          setViolations(violationsRes.value.data.data);
+
+        if (violationsRes.status === 'fulfilled' && violationsRes.value?.data) {
+          setViolations(violationsRes.value.data);
+        } else if (violationsRes.status === 'rejected') {
+          console.error("Failed to fetch violations:", violationsRes.reason);
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
