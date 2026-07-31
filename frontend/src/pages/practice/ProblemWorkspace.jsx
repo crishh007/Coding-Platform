@@ -355,7 +355,7 @@ export default function ProblemWorkspace() {
       <div className="pr-pane left" style={isPreview ? { flex: 'none', width: '100%', maxWidth: '900px', margin: '0 auto', borderRight: '1px solid var(--pr-border-color)', borderLeft: '1px solid var(--pr-border-color)' } : {}}>
         <div className="pr-pane-header">
           {isPreview ? (
-            <button className="pr-back-btn" onClick={() => window.close()} title="Close Preview">
+            <button className="pr-back-btn" onClick={() => window.history.back()} title="Back to Contest">
               <ChevronLeft size={20} /> Back
             </button>
           ) : (

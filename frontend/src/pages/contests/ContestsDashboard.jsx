@@ -38,12 +38,27 @@ function ContestsDashboard() {
   const [violations, setViolations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(() => {
+    return sessionStorage.getItem('showContestDraft') === 'true';
+  });
   const [modalError, setModalError] = useState(null);
   const [globalProblems, setGlobalProblems] = useState([]);
-  const [createForm, setCreateForm] = useState({
-    title: '', description: '', startTime: '', duration: 60, maxParticipants: 50, problems: []
+  
+  const [createForm, setCreateForm] = useState(() => {
+    const saved = sessionStorage.getItem('contestDraft');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return { title: '', description: '', startTime: '', duration: 60, maxParticipants: 50, problems: [] };
   });
+
+  useEffect(() => {
+    sessionStorage.setItem('contestDraft', JSON.stringify(createForm));
+  }, [createForm]);
+
+  useEffect(() => {
+    sessionStorage.setItem('showContestDraft', showCreateModal);
+  }, [showCreateModal]);
 
   // Fetch problems for the modal
   useEffect(() => {
@@ -65,6 +80,8 @@ function ContestsDashboard() {
         })
       };
       await client.post('/contests', payload);
+      sessionStorage.removeItem('contestDraft');
+      sessionStorage.removeItem('showContestDraft');
       setShowCreateModal(false);
       window.location.reload(); // Quick refresh to see the new contest
     } catch (err) {
@@ -523,19 +540,24 @@ function ContestsDashboard() {
 
       <CreateContestModal 
         show={showCreateModal} 
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          sessionStorage.removeItem('contestDraft');
+          sessionStorage.removeItem('showContestDraft');
+          setShowCreateModal(false);
+        }}
         form={createForm}
         setForm={setCreateForm}
         problems={globalProblems}
         onSubmit={handleCreateContest}
         error={modalError}
+        onPreview={(id) => navigate(`/practice/problems/${id}?preview=true`)}
       />
     </div>
   );
 }
 
 // Minimal Create Contest Modal inline component
-function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, error }) {
+function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, error, onPreview }) {
   if (!show) return null;
   
   const toggleProblem = (id) => {
@@ -637,7 +659,7 @@ function CreateContestModal({ show, onClose, form, setForm, problems, onSubmit, 
                           <button 
                             type="button"
                             title="Preview Problem"
-                            onClick={(e) => { e.stopPropagation(); window.open(`/practice/problems/${p.id}?preview=true`, '_blank'); }}
+                            onClick={(e) => { e.stopPropagation(); onPreview(p.id); }}
                             style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.2rem' }}
                           >
                             <Eye size={16} className="hover:text-primary transition-colors" />
