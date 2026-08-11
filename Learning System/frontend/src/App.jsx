@@ -34,8 +34,8 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Layout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -70,8 +70,8 @@ function App() {
             <Route path="/problems/:id" element={<ProblemWorkspace />} />
           </Routes>
         </Layout>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
