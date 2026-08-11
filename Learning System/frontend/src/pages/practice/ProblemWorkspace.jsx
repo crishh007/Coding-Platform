@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/client';
 import { ThumbsUp, ThumbsDown, Star, ChevronLeft, Play, Send, History } from 'lucide-react';
 import './practice.css';
 
@@ -33,7 +34,7 @@ export default function ProblemWorkspace() {
   const [submissions, setSubmissions] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://localhost:8081/api/v1/problems/${id}`)
+    axios.get(`${API_BASE_URL}/problems/${id}`)
       .then(res => setProblem(res.data))
       .catch(err => console.error("Failed to load problem:", err));
 
@@ -51,7 +52,8 @@ export default function ProblemWorkspace() {
 
     try {
       const tc = problem.testCases[activeTestCaseTab];
-      const res = await axios.post('http://localhost:8081/api/v1/execute', {
+      const res = await axios.post(`${API_BASE_URL}/execute`, {
+        problemId: id,
         language,
         code,
         input: tc ? tc.input : ''

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/client';
 
 const LessonForm = ({ courses, onAdded }) => {
   const [topicId, setTopicId] = useState('');
@@ -66,7 +67,7 @@ const LessonForm = ({ courses, onAdded }) => {
         }
       };
 
-      await axios.post('http://localhost:8080/api/v1/admin/lessons', { topicId, lesson: payload });
+      await axios.post(`${API_BASE_URL}/admin/lessons`, { topicId, lesson: payload });
       onAdded();
       alert('Lesson added successfully!');
     } catch (err) {

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Filter, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { API_BASE_URL } from '../../api/client';
 import './practice.css';
 
 export default function Dashboard() {
@@ -21,8 +23,8 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    // In development, the Go backend runs on 8081
-    axios.get('http://localhost:8081/api/v1/problems')
+    // Fetch problems from the backend
+    axios.get(`${API_BASE_URL}/problems`)
       .then(res => {
         const data = res.data || [];
         setProblems(data);

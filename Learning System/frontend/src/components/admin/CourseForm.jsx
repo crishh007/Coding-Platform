@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/client';
 
 const CourseForm = ({ onAdded }) => {
   const [title, setTitle] = useState('');
@@ -7,7 +8,7 @@ const CourseForm = ({ onAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/v1/admin/courses', { title });
+      await axios.post(`${API_BASE_URL}/admin/courses`, { title });
       setTitle('');
       onAdded();
       alert('Course added successfully!');

@@ -31,6 +31,12 @@ func SetupRouter(h *handlers.Handler) *gin.Engine {
 
 	api := r.Group("/api/v1")
 	{
+		// Auth Endpoints
+		auth := api.Group("/auth")
+		{
+			auth.POST("/github", h.GithubLogin)
+		}
+
 		// New Simplified Embedded Endpoints
 		api.GET("/topics/tree", h.GetTopicTree)
 		api.GET("/topics/:id", h.GetTopicByID)

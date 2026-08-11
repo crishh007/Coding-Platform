@@ -4,6 +4,7 @@ import CourseForm from '../components/admin/CourseForm';
 import TopicForm from '../components/admin/TopicForm';
 import LessonForm from '../components/admin/LessonForm';
 import PracticeProblemForm from '../components/admin/PracticeProblemForm';
+import { API_BASE_URL } from '../api/client';
 
 const AdminDashboard = () => {
   const [courses, setCourses] = useState([]);
@@ -15,7 +16,7 @@ const AdminDashboard = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/v1/topics/tree');
+      const response = await axios.get(`${API_BASE_URL}/topics/tree`);
       setCourses(response.data || []);
     } catch (error) {
       console.error('Failed to fetch courses', error);

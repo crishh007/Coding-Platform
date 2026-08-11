@@ -13,8 +13,6 @@ import {
   Flame,
   Bell,
   Terminal,
-  Sun,
-  Moon,
   ChevronDown,
   BookOpen,
   GraduationCap,
@@ -33,7 +31,7 @@ export default function Layout({ children }) {
   const [toggleUnlocked, setToggleUnlocked] = useState(() => localStorage.getItem('codemastery_toggle_unlocked') === 'true');
   
   // Theme state
-  const [theme, setTheme] = useState(() => localStorage.getItem('codemastery_theme') || 'dark');
+  const [theme] = useState(() => localStorage.getItem('codemastery_theme') || 'dark');
   
   // Custom Toast State
   const [toastMessage, setToastMessage] = useState('');
@@ -63,11 +61,6 @@ export default function Layout({ children }) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('codemastery_theme', theme);
   }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-    showToast(`Switched to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`);
-  };
 
   // Hidden developer keyboard shortcut to unlock (Ctrl + Alt + A)
   useEffect(() => {
@@ -374,15 +367,6 @@ export default function Layout({ children }) {
                 backgroundColor: 'var(--danger)',
                 boxShadow: '0 0 6px var(--danger)'
               }} />
-            </div>
-
-            {/* Theme Toggle */}
-            <div 
-              style={{ cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}
-              onClick={toggleTheme}
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </div>
 
             {/* Conditional Glowing Admin Toggle */}

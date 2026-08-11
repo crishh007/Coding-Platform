@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import GithubCallback from './pages/GithubCallback';
 import UserEntry from './pages/UserEntry';
 import PathsPage from './pages/PathsPage';
 import StudyPage from './pages/StudyPage';
@@ -40,6 +41,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/auth/github/callback" element={<GithubCallback />} />
             <Route path="/modes" element={<UserEntry />} />
             <Route path="/paths/:id" element={<PathsPage />} />
             <Route path="/study" element={<StudyPage />} />

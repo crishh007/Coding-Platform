@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/client';
 
 const PracticeProblemForm = () => {
   const [formData, setFormData] = useState({
@@ -50,7 +51,7 @@ const PracticeProblemForm = () => {
     setStatus('Submitting...');
     try {
       // The Go backend is running on 8081 for Practice Module
-      await axios.post('http://localhost:8081/api/v1/problems', formData);
+      await axios.post(`${API_BASE_URL}/problems`, formData);
       setStatus('Problem added successfully!');
       // Reset form
       setFormData({

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../api/client';
 
 const TopicForm = ({ courses, onAdded }) => {
   const [courseId, setCourseId] = useState('');
@@ -9,7 +10,7 @@ const TopicForm = ({ courses, onAdded }) => {
     e.preventDefault();
     if (!courseId) return alert('Please select a course');
     try {
-      await axios.post('http://localhost:8080/api/v1/admin/topics', { courseId, title });
+      await axios.post(`${API_BASE_URL}/admin/topics`, { courseId, title });
       setTitle('');
       onAdded();
       alert('Topic added successfully!');
