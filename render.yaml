@@ -5,6 +5,7 @@ services:
   - type: web
     name: krishnova-api
     env: go
+    plan: free
     # Render will automatically run `go build` but we can specify the exact directory
     buildCommand: cd "Learning System/backend" && go build -o main .
     startCommand: cd "Learning System/backend" && ./main
