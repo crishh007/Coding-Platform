@@ -180,3 +180,22 @@ type Certificate struct {
 	VerificationCode string    `bson:"verificationCode" json:"verificationCode"`
 	EarnedAt         time.Time `bson:"earnedAt" json:"earnedAt"`
 }
+type TestCase struct {
+	Input          string `json:"input" bson:"input"`
+	ExpectedOutput string `json:"expected_output" bson:"expected_output"`
+	IsHidden       bool   `json:"is_hidden" bson:"is_hidden"`
+}
+
+type Problem struct {
+	ID          string             `json:"_id,omitempty" bson:"_id,omitempty"`
+	ProblemID   int                `json:"id" bson:"id"`
+	Title       string             `json:"title" bson:"title"`
+	Difficulty  string             `json:"difficulty" bson:"difficulty"`
+	Acceptance  string             `json:"acceptance" bson:"acceptance"`
+	Description string             `json:"description" bson:"description"`
+	Examples    []string           `json:"examples" bson:"examples"`
+	Topics      []string           `json:"topics" bson:"topics"`
+	Likes       int                `json:"likes" bson:"likes"`
+	Dislikes    int                `json:"dislikes" bson:"dislikes"`
+	TestCases   []TestCase         `json:"testCases" bson:"testCases"`
+}

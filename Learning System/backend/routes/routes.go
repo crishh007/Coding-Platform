@@ -59,6 +59,11 @@ func SetupRouter(h *handlers.Handler) *gin.Engine {
 		api.GET("/user/streak", h.GetStreakStats)
 		api.POST("/user/streak/ping", h.PingActivityStreak)
 
+		// Practice Standalone Endpoints
+		api.GET("/problems", h.GetProblems)
+		api.GET("/problems/:id", h.GetProblem)
+		api.POST("/execute", h.ExecuteCode)
+
 		// Admin Endpoints
 		admin := api.Group("/admin")
 		{
