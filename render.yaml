@@ -6,8 +6,8 @@ services:
     name: krishnova-api
     env: go
     # Render will automatically run `go build` but we can specify the exact directory
-    buildCommand: cd backend && go build -o main .
-    startCommand: cd backend && ./main
+    buildCommand: cd "Learning System/backend" && go build -o main .
+    startCommand: cd "Learning System/backend" && ./main
     envVars:
       - key: DATABASE_URL
         # This prevents the value from being committed, you will paste it in the Render dashboard
@@ -26,9 +26,9 @@ services:
     name: krishnova-web
     env: static
     # Build the Vite frontend
-    buildCommand: cd frontend && npm install && npm run build
+    buildCommand: cd "Learning System/frontend" && npm install && npm run build
     # Serve the built assets
-    staticPublishPath: frontend/dist
+    staticPublishPath: Learning System/frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
         # This automatically grabs the live URL of your Go backend once deployed
