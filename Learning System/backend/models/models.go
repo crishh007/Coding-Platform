@@ -187,15 +187,15 @@ type TestCase struct {
 }
 
 type Problem struct {
-	ID          string             `json:"_id,omitempty" bson:"_id,omitempty"`
-	ProblemID   int                `json:"id" bson:"id"`
-	Title       string             `json:"title" bson:"title"`
-	Difficulty  string             `json:"difficulty" bson:"difficulty"`
-	Acceptance  string             `json:"acceptance" bson:"acceptance"`
-	Description string             `json:"description" bson:"description"`
-	Examples    []string           `json:"examples" bson:"examples"`
-	Topics      []string           `json:"topics" bson:"topics"`
-	Likes       int                `json:"likes" bson:"likes"`
-	Dislikes    int                `json:"dislikes" bson:"dislikes"`
-	TestCases   []TestCase         `json:"testCases" bson:"testCases"`
+	ID          any        `json:"_id,omitempty" bson:"_id,omitempty"`
+	ProblemID   int        `json:"id" bson:"id"`
+	Title       string     `json:"title" bson:"title"`
+	Difficulty  string     `json:"difficulty" bson:"difficulty"`
+	Acceptance  string     `json:"acceptance" bson:"acceptance"`
+	Description string     `json:"description" bson:"description"`
+	Examples    []string   `json:"examples" bson:"examples"`
+	Topics      []string   `json:"topics" bson:"topics"`
+	Likes       int        `json:"likes" bson:"likes"`
+	Dislikes    int        `json:"dislikes" bson:"dislikes"`
+	TestCases   []TestCase `json:"testCases" bson:"testCases"`
 }

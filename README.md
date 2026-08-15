@@ -1,8 +1,8 @@
-# CodeMastery Learning Platform
+# SkillSync Learning & Placement Platform
 
-![CodeMastery Platform](https://img.shields.io/badge/Status-Active-success) ![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?logo=react) ![Go](https://img.shields.io/badge/Backend-Go%20%2B%20Gin-00ADD8?logo=go) ![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb)
+![SkillSync Platform](https://img.shields.io/badge/Status-Active-success) ![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?logo=react) ![Go](https://img.shields.io/badge/Backend-Go%20%2B%20Gin-00ADD8?logo=go) ![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb)
 
-CodeMastery (Krishnova) is a modern, full-stack interactive coding platform built to deliver an exceptional learning experience. It combines a dynamic and deeply responsive React frontend with a highly-performant Go API backend.
+SkillSync is a modern, full-stack interactive coding and placement preparation platform built to deliver an exceptional learning experience. It combines a dynamic, dark-glassmorphism React frontend with high-performance Go API backends.
 
 ## 🌟 Key Features
 

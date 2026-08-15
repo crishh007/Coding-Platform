@@ -182,7 +182,7 @@ export default function StudyPage() {
   // AI Tutor States
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiChat, setAiChat] = useState([
-    { role: 'assistant', text: 'Hello! I am your CodeMastery AI Tutor. Ask me any question about this lesson or complexity curves!' }
+    { role: 'assistant', text: 'Hello! I am your SkillSync AI Tutor. Ask me any question about this lesson or complexity curves!' }
   ]);
   const [aiTyping, setAiTyping] = useState(false);
 

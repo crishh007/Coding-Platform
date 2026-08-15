@@ -114,7 +114,7 @@ export default function UserEntry() {
       <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
         <h2 style={{ fontSize: '2.25rem', marginBottom: '0.75rem' }}>Select Your Study Track</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.5' }}>
-          CodeMastery offers three targeted modes optimized for different learning objectives. Select a pathway below to begin your training.
+          SkillSync offers three targeted modes optimized for different learning objectives. Select a pathway below to begin your training.
         </p>
       </div>
 

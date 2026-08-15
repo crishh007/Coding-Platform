@@ -19,6 +19,7 @@ import {
   Target
 } from 'lucide-react';
 import client from '../../api/client';
+import SkillSyncLogo from './SkillSyncLogo';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -138,33 +139,19 @@ export default function Layout({ children }) {
       <main className="main-content">
         <header className="navbar" style={{ padding: '0 1.5rem', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           {/* Left Side: Brand Logo */}
-          <div 
+          <Link 
+            to="/"
             onDoubleClick={unlockToggle}
-            title="Double-click to unlock developer panel"
+            title="SkillSync Platform (Double-click to toggle developer panel)"
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '0.75rem', 
               cursor: 'pointer',
-              userSelect: 'none'
+              textDecoration: 'none'
             }}
           >
-            <div style={{ 
-              background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)', 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: 'var(--radius-sm)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              boxShadow: '0 0 12px rgba(139, 92, 246, 0.4)'
-            }}>
-              <Terminal size={18} color="#fff" />
-            </div>
-            <div>
-              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, letterSpacing: '0.5px' }}>CodeMastery</h4>
-            </div>
-          </div>
+            <SkillSyncLogo size="sm" showText={true} />
+          </Link>
 
           {/* Center: Navigation Links */}
           <nav style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>

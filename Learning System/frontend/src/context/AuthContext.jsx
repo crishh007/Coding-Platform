@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
                     <h2 style="margin: 0 0 24px 0; font-weight: 300; font-size: 24px;">Sign in to GitHub</h2>
                     
                     <button onclick="window.opener.postMessage({type: 'MOCK_OAUTH_SUCCESS', provider: 'github', email: 'dev@github.com', name: 'GitHub Developer'}, '*'); window.close();" style="width: 100%; padding: 12px; background: #2da44e; color: white; border: 1px solid rgba(27,31,36,0.15); border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.background='#2c974b'" onmouseout="this.style.background='#2da44e'">
-                        Authorize CodeMastery
+                        Authorize SkillSync
                     </button>
                 </div>
             </body>
