@@ -66,7 +66,7 @@ const LessonForm = ({ courses, onAdded }) => {
         }
       };
 
-      await axios.post('http://localhost:8080/api/v1/admin/lessons', { topicId, lesson: payload });
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/admin/lessons`, { topicId, lesson: payload });
       onAdded();
       alert('Lesson added successfully!');
     } catch (err) {

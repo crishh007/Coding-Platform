@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // In development, the Go backend runs on 8080
-  const apiBase = 'http://localhost:8080/api/v1/auth';
+  const apiBase = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/auth`;
 
   useEffect(() => {
     // If we have a token, we could optionally fetch user details here

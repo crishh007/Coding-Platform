@@ -9,7 +9,7 @@ const TopicForm = ({ courses, onAdded }) => {
     e.preventDefault();
     if (!courseId) return alert('Please select a course');
     try {
-      await axios.post('http://localhost:8080/api/v1/admin/topics', { courseId, title });
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/admin/topics`, { courseId, title });
       setTitle('');
       onAdded();
       alert('Topic added successfully!');

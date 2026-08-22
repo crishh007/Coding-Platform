@@ -50,7 +50,7 @@ const PracticeProblemForm = () => {
     setStatus('Submitting...');
     try {
       // The Go backend is running on 8081 for Practice Module
-      await axios.post('http://localhost:8081/api/v1/problems', formData);
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/problems`, formData);
       setStatus('Problem added successfully!');
       // Reset form
       setFormData({

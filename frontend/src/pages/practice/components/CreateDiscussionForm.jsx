@@ -19,7 +19,7 @@ export default function CreateDiscussionForm({ problemId, onClose, onSuccess }) 
 
     try {
       // Assuming a real backend endpoint exists. Since we are in mock mode, this will fail and fall back to local storage.
-      const response = await fetch(`http://localhost:8080/api/problems/${problemId}/discussions`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/problems/${problemId}/discussions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

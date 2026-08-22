@@ -1,0 +1,28 @@
+services:
+  # Go Backend Service
+  - type: web
+    name: learning-system-backend
+    env: go
+    rootDir: backend
+    buildCommand: go build -o main .
+    startCommand: ./main
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false # Set this in your Render dashboard if you want to override your default DB
+
+  # React Frontend Static Site
+  - type: static_site
+    name: learning-system-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    # Automatically get the backend URL to use in the frontend (Requires changing frontend code to use process.env or import.meta.env)
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: learning-system-backend
+          envVarKey: RENDER_EXTERNAL_URL

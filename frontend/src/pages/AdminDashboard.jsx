@@ -15,7 +15,7 @@ const AdminDashboard = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/v1/topics/tree');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/topics/tree`);
       setCourses(response.data || []);
     } catch (error) {
       console.error('Failed to fetch courses', error);

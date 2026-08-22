@@ -7,7 +7,7 @@ const CourseForm = ({ onAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/v1/admin/courses', { title });
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/admin/courses`, { title });
       setTitle('');
       onAdded();
       alert('Course added successfully!');
