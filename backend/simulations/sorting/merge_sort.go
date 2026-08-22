@@ -1,7 +1,7 @@
 package sorting
 
 import (
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 )
 
 func buildMergeSortHud(currSize, leftStart, mid, rightEnd, i, j, k, n int) []models.HudVariable {

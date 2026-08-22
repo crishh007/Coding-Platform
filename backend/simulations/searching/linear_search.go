@@ -1,6 +1,6 @@
 package searching
 
-import "codemastery-learning-system/models"
+import "skillsync-learning-system/models"
 
 func buildLinearHud(arr []int, i int) []models.HudVariable {
 	iStr := "-"

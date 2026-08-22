@@ -1,4 +1,4 @@
-module codemastery-learning-system
+module skillsync-learning-system
 
 go 1.26.3
 

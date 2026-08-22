@@ -4,7 +4,7 @@ import (
 	"math"
 	"strconv"
 
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 )
 
 func min(a, b int) int {

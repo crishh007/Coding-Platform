@@ -1,6 +1,6 @@
 package searching
 
-import "codemastery-learning-system/models"
+import "skillsync-learning-system/models"
 
 func buildBinaryArrayState(arr []int, low, high, mid int, foundIdx int) []models.ArrayCellState {
 	state := make([]models.ArrayCellState, len(arr))

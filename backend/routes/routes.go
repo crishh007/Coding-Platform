@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"codemastery-learning-system/handlers"
+	"skillsync-learning-system/handlers"
 	"github.com/gin-gonic/gin"
 )
 

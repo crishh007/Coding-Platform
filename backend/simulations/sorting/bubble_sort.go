@@ -1,6 +1,6 @@
 package sorting
 
-import "codemastery-learning-system/models"
+import "skillsync-learning-system/models"
 
 func buildBubbleSortHud(i, j, n int) []models.HudVariable {
 	return []models.HudVariable{

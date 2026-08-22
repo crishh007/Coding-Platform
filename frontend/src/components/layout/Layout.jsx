@@ -29,8 +29,8 @@ export default function Layout({ children }) {
   const [serverOnline, setServerOnline] = useState(false);
 
   // Admin/Developer Mode and Toggle visibility states
-  const [adminMode, setAdminMode] = useState(() => localStorage.getItem('codemastery_admin_mode') === 'true');
-  const [toggleUnlocked, setToggleUnlocked] = useState(() => localStorage.getItem('codemastery_toggle_unlocked') === 'true');
+  const [adminMode, setAdminMode] = useState(() => localStorage.getItem('skillsync_admin_mode') === 'true');
+  const [toggleUnlocked, setToggleUnlocked] = useState(() => localStorage.getItem('skillsync_toggle_unlocked') === 'true');
   
   const { theme, toggleTheme } = useContext(ThemeContext);
   
@@ -77,16 +77,16 @@ export default function Layout({ children }) {
 
   const unlockToggle = () => {
     setToggleUnlocked(true);
-    localStorage.setItem('codemastery_toggle_unlocked', 'true');
+    localStorage.setItem('skillsync_toggle_unlocked', 'true');
     showToast('🔓 Developer settings unlocked! Toggle View in header.');
   };
 
   const lockToggle = () => {
     setToggleUnlocked(false);
-    localStorage.setItem('codemastery_toggle_unlocked', 'false');
+    localStorage.setItem('skillsync_toggle_unlocked', 'false');
     // Lock also resets back to Student Mode
     setAdminMode(false);
-    localStorage.setItem('codemastery_admin_mode', 'false');
+    localStorage.setItem('skillsync_admin_mode', 'false');
     window.dispatchEvent(new Event('admin-mode-change'));
     showToast('🔒 Developer configurations locked.');
   };
@@ -94,7 +94,7 @@ export default function Layout({ children }) {
   const handleToggleAdminMode = (e) => {
     const newMode = e.target.checked;
     setAdminMode(newMode);
-    localStorage.setItem('codemastery_admin_mode', newMode.toString());
+    localStorage.setItem('skillsync_admin_mode', newMode.toString());
     window.dispatchEvent(new Event('admin-mode-change'));
     showToast(newMode ? '🔓 Switched to Developer View' : '🎓 Switched to Student View');
   };
@@ -164,7 +164,7 @@ export default function Layout({ children }) {
               <Terminal size={18} color="#fff" />
             </div>
             <div>
-              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, letterSpacing: '0.5px' }}>CodeMastery</h4>
+              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, letterSpacing: '0.5px' }}>SkillSync</h4>
             </div>
           </div>
 

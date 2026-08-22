@@ -7,10 +7,10 @@ import (
 	"strings"
 	"math/rand"
 
-	"codemastery-learning-system/config"
-	"codemastery-learning-system/database"
-	"codemastery-learning-system/handlers"
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/config"
+	"skillsync-learning-system/database"
+	"skillsync-learning-system/handlers"
+	"skillsync-learning-system/models"
 )
 
 // statsForDifficulty returns deterministic submission / accepted counts for a given difficulty.

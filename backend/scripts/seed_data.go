@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"

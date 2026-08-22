@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"

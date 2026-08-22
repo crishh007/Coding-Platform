@@ -4,9 +4,9 @@ import (
     "context"
     "log"
 
-    "codemastery-learning-system/config"
-    "codemastery-learning-system/database"
-    "codemastery-learning-system/models"
+    "skillsync-learning-system/config"
+    "skillsync-learning-system/database"
+    "skillsync-learning-system/models"
     "go.mongodb.org/mongo-driver/v2/bson"
 )
 

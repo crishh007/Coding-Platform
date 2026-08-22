@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [updatedResume, setUpdatedResume] = useState(false);
 
   useEffect(() => {
-    document.title = "Dashboard | CodeMastery";
+    document.title = "Dashboard | SkillSync";
     
     const fetchDashboardData = async () => {
       try {

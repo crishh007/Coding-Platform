@@ -3,11 +3,11 @@ import React, { createContext, useState, useEffect } from 'react';
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => localStorage.getItem('codemastery_theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('skillsync_theme') || 'dark');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('codemastery_theme', theme);
+    localStorage.setItem('skillsync_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {

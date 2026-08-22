@@ -26,7 +26,7 @@ export default function Dashboard() {
 
   // ── Load problems + solved IDs ──
   useEffect(() => {
-    document.title = "Practice Dashboard | CodeMastery";
+    document.title = "Practice Dashboard | SkillSync";
       
       const loadData = async () => {
         setIsLoading(true);

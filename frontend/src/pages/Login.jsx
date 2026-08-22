@@ -52,7 +52,7 @@ export default function Login() {
         <div className="auth-hero-content">
           <div className="auth-badge">
             <Sparkles size={16} fill="currentColor" />
-            <span>CodeMastery Learning</span>
+            <span>SkillSync Learning</span>
           </div>
           
           <h1>Your Personalized<br/>Path to <span className="highlight-blue">Success</span></h1>
@@ -64,7 +64,7 @@ export default function Login() {
             <Quote size={32} className="auth-testimonial-quote-icon" fill="currentColor" />
             <div className="auth-testimonial-text-content">
               <div className="auth-testimonial-text">
-                "CodeMastery's adaptive path helped me land my dream job in tech within 6 months!"
+                "SkillSync's adaptive path helped me land my dream job in tech within 6 months!"
               </div>
               <div className="auth-testimonial-author">
                 — Sarah J., Software Engineer

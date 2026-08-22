@@ -33,7 +33,7 @@ func (h *Handler) ChatWithAI(c *gin.Context) {
 	} else if strings.Contains(msg, "big o") || strings.Contains(msg, "complexity") {
 		response = "Big O notation describes the worst-case time or space complexity of an algorithm. O(1) is constant, O(N) is linear, and O(N^2) is quadratic. Which one would you like to know more about?"
 	} else if strings.Contains(msg, "hello") || strings.Contains(msg, "hi") {
-		response = "Hello there! I'm your CodeMastery AI Assistant. I see you're currently learning about '" + req.Context + "'. How can I help you today?"
+		response = "Hello there! I'm your SkillSync AI Assistant. I see you're currently learning about '" + req.Context + "'. How can I help you today?"
 	} else if strings.Contains(msg, "thank") {
 		response = "You're very welcome! Keep up the great work on your coding journey."
 	} else {

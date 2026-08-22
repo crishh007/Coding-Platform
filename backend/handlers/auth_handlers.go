@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"

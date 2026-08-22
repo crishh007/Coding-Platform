@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

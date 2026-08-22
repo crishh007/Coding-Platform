@@ -15,7 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 )
 
 // ─────────────────────────────────────────────

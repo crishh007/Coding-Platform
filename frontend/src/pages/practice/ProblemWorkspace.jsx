@@ -182,7 +182,7 @@ export default function ProblemWorkspace() {
       .then((data) => {
         setProblem(data);
         if (data && data.title) {
-          document.title = `${data.title} - Practice | CodeMastery`;
+          document.title = `${data.title} - Practice | SkillSync`;
         }
       })
       .catch((err) => console.error('Failed to load problem:', err));

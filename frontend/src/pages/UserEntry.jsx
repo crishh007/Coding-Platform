@@ -41,7 +41,7 @@ export default function UserEntry() {
   }, [selectedMode]);
 
   const handleSelectMode = (mode) => {
-    const isAdmin = localStorage.getItem('codemastery_admin_mode') === 'true';
+    const isAdmin = localStorage.getItem('skillsync_admin_mode') === 'true';
     if (mode === 'career') {
       navigate('/careers');
       return;
@@ -67,7 +67,7 @@ export default function UserEntry() {
   };
 
   const handleItemClick = (item) => {
-    const isAdmin = localStorage.getItem('codemastery_admin_mode') === 'true';
+    const isAdmin = localStorage.getItem('skillsync_admin_mode') === 'true';
     if (selectedMode === 'quick_learn') {
       navigate(`/study?topicId=${item.id}&mode=quick_learn`);
     } else if (selectedMode === 'course') {
@@ -114,7 +114,7 @@ export default function UserEntry() {
       <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
         <h2 style={{ fontSize: '2.25rem', marginBottom: '0.75rem' }}>Select Your Study Track</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.5' }}>
-          CodeMastery offers three targeted modes optimized for different learning objectives. Select a pathway below to begin your training.
+          SkillSync offers three targeted modes optimized for different learning objectives. Select a pathway below to begin your training.
         </p>
       </div>
 

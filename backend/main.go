@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 
-	"codemastery-learning-system/config"
-	"codemastery-learning-system/database"
-	"codemastery-learning-system/handlers"
-	"codemastery-learning-system/routes"
+	"skillsync-learning-system/config"
+	"skillsync-learning-system/database"
+	"skillsync-learning-system/handlers"
+	"skillsync-learning-system/routes"
 )
 
 func main() {
-	log.Println("Starting CodeMastery Learning Engine (Embedded MongoDB Architecture)...")
+	log.Println("Starting SkillSync Learning Engine (Embedded MongoDB Architecture)...")
 
 	// 1. Load Configurations
 	cfg := config.LoadConfig()

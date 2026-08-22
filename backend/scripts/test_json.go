@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"codemastery-learning-system/models"
+	"skillsync-learning-system/models"
 	"time"
 )
 

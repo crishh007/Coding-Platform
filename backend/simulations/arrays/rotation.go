@@ -1,6 +1,6 @@
 package arrays
 
-import "codemastery-learning-system/models"
+import "skillsync-learning-system/models"
 
 func buildArrayRotationHud(k int, n int) []models.HudVariable {
 	return []models.HudVariable{

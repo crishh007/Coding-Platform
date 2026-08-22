@@ -108,11 +108,11 @@ export default function StudyPage() {
   const lessonId = searchParams.get('lessonId');
   const pathId = searchParams.get('pathId') || '';
 
-  const [adminMode, setAdminMode] = useState(() => localStorage.getItem('codemastery_admin_mode') === 'true');
+  const [adminMode, setAdminMode] = useState(() => localStorage.getItem('skillsync_admin_mode') === 'true');
 
   useEffect(() => {
     const handleAdminChange = () => {
-      setAdminMode(localStorage.getItem('codemastery_admin_mode') === 'true');
+      setAdminMode(localStorage.getItem('skillsync_admin_mode') === 'true');
     };
     window.addEventListener('admin-mode-change', handleAdminChange);
   
@@ -185,7 +185,7 @@ export default function StudyPage() {
   // AI Tutor States
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiChat, setAiChat] = useState([
-    { role: 'assistant', text: 'Hello! I am your CodeMastery AI Tutor. Ask me any question about this lesson or complexity curves!' }
+    { role: 'assistant', text: 'Hello! I am your SkillSync AI Tutor. Ask me any question about this lesson or complexity curves!' }
   ]);
   const [aiTyping, setAiTyping] = useState(false);
 

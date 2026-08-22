@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"codemastery-learning-system/config"
+	"skillsync-learning-system/config"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )

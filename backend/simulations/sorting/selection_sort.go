@@ -1,6 +1,6 @@
 package sorting
 
-import "codemastery-learning-system/models"
+import "skillsync-learning-system/models"
 
 func buildSelectionSortHud(i, j, minIndex, n int) []models.HudVariable {
 	hud := []models.HudVariable{
