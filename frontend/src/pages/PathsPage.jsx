@@ -106,7 +106,7 @@ export default function PathsPage() {
       </div>
 
       {/* Main Canvas Area */}
-      <div style={{ display: 'flex', gap: '1.5rem', flex: 1, minHeight: '500px' }}>
+      <div className="grid-sidebar-right" style={{ flex: 1, minHeight: '500px' }}>
         
         {/* SVG Tree Graph */}
         <div 
@@ -235,7 +235,7 @@ export default function PathsPage() {
         <div 
           className="card" 
           style={{ 
-            width: '320px', 
+            width: '100%', 
             background: 'rgba(11, 14, 30, 0.8)',
             display: 'flex', 
             flexDirection: 'column', 

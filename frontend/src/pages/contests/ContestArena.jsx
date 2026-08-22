@@ -174,7 +174,7 @@ export default function ContestArena() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+      <div className="grid-sidebar-right">
         
         {/* Left Column: Main Content */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

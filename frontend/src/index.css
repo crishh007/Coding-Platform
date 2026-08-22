@@ -525,6 +525,38 @@ a:hover {
   }
 }
 
+/* --- Common Page Grids --- */
+.grid-split-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.grid-sidebar-right {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  align-items: start;
+}
+.grid-study-layout {
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr;
+  gap: 1.5rem;
+}
+.grid-form-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 992px) {
+  .grid-split-2,
+  .grid-sidebar-right,
+  .grid-study-layout,
+  .grid-form-3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* --- Responsive Navigation --- */
 .desktop-nav {
   position: absolute;

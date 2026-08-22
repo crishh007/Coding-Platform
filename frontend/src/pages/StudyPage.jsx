@@ -1390,7 +1390,7 @@ export default function StudyPage() {
                     {/* Left Pane: Visual Canvas & Controls */}
                     <div style={{ 
                       flex: '1 1 55%', 
-                      minWidth: '400px', 
+                      minWidth: '100%', 
                       display: 'flex', 
                       flexDirection: 'column', 
                       gap: '1.5rem' 
@@ -1757,7 +1757,7 @@ export default function StudyPage() {
                   {/* Right Pane: Pseudocode Panel */}
                     <div style={{ 
                       flex: '1 1 35%', 
-                      minWidth: '320px', 
+                      minWidth: '100%', 
                       display: 'flex', 
                       flexDirection: 'column' 
                     }}>
@@ -2004,7 +2004,7 @@ export default function StudyPage() {
                                   <span className="badge badge-secondary" style={{ alignSelf: 'flex-start' }}>Question {qIdx + 1}</span>
                                   <h4 style={{ fontSize: '1rem', margin: 0 }}>{q.question || q.text}</h4>
                                   
-                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+                                  <div className="grid-split-2">
                                     {q.options.map((option, optIdx) => {
                                       const isSelected = chosenOpt === optIdx;
                                       const isCorrectOpt = optIdx === actualCorrectOpt;
@@ -2086,7 +2086,7 @@ export default function StudyPage() {
                                 <span className="badge badge-primary" style={{ alignSelf: 'flex-start' }}>Question {qIdx + 1}</span>
                                 <h3 style={{ fontSize: '1.1rem', margin: 0 }}>{q.question || q.text}</h3>
                                 
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+                                <div className="grid-split-2">
                                   {q.options.map((option, optIdx) => {
                                     const isSelected = chosenOpt === optIdx;
                                     const hasAnswered = chosenOpt !== undefined;
@@ -2180,7 +2180,7 @@ export default function StudyPage() {
                     </p>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '1.5rem' }} className="grid-cols-3">
+                  <div className="grid-study-layout">
                     {/* Editor Textbox */}
                     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
@@ -2320,7 +2320,7 @@ export default function StudyPage() {
       {/* 3. Right Sidebar - AI Tutor & Related Widgets */}
       <div 
         style={{
-          width: '320px',
+          width: '100%', maxWidth: '320px',
           backgroundColor: 'var(--bg-sidebar)',
           display: 'flex',
           flexDirection: 'column',

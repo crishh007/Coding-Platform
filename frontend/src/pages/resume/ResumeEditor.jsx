@@ -140,7 +140,7 @@ const ResumeEditor = () => {
           <div className="animate-fade-in">
             <h3 style={{ marginBottom: '4px' }}>Personal Information</h3>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.9rem' }}>Your contact details for the resume header.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="grid-split-2">
               <div><label>Full Name *</label><input type="text" placeholder="John Doe" value={resume.personal_info.full_name || ''} onChange={e => updatePersonal('full_name', e.target.value)} /></div>
               <div><label>Phone Number *</label><input type="tel" placeholder="+91-9999999999" value={resume.personal_info.phone || ''} onChange={e => updatePersonal('phone', e.target.value)} /></div>
               <div><label>Email Address *</label><input type="email" placeholder="john@example.com" value={resume.personal_info.email || ''} onChange={e => updatePersonal('email', e.target.value)} /></div>
@@ -169,7 +169,7 @@ const ResumeEditor = () => {
               addLabel="Add Education"
               emptyLabel="No education entries yet. Add your first one!"
               renderItem={(item, idx, update) => (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="grid-split-2">
                   <div style={{ gridColumn: '1 / -1' }}><label>Institution Name</label><input type="text" placeholder="IIT Bombay" value={item.institution} onChange={e => update('institution', e.target.value)} style={{ marginBottom: 0 }} /></div>
                   <div><label>Degree / Course</label><input type="text" placeholder="B.Tech" value={item.degree} onChange={e => update('degree', e.target.value)} style={{ marginBottom: 0 }} /></div>
                   <div><label>Specialization</label><input type="text" placeholder="Computer Science" value={item.field_of_study} onChange={e => update('field_of_study', e.target.value)} style={{ marginBottom: 0 }} /></div>
@@ -235,7 +235,7 @@ const ResumeEditor = () => {
               emptyLabel="No projects added yet."
               renderItem={(item, idx, update) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div className="grid-split-2">
                     <div><label>Project Name</label><input type="text" placeholder="E-commerce Platform" value={item.name} onChange={e => update('name', e.target.value)} style={{ marginBottom: 0 }} /></div>
                     <div><label>Duration</label><input type="text" placeholder="06 2023" value={item.duration} onChange={e => update('duration', e.target.value)} style={{ marginBottom: 0 }} /></div>
                     <div><label>GitHub / Source Link</label><input type="url" placeholder="https://github.com/..." value={item.link || ''} onChange={e => update('link', e.target.value)} style={{ marginBottom: 0 }} /></div>
@@ -271,7 +271,7 @@ const ResumeEditor = () => {
               emptyLabel="No experience entries yet."
               renderItem={(item, idx, update) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div className="grid-split-2">
                     <div><label>Company Name</label><input type="text" placeholder="Google" value={item.company} onChange={e => update('company', e.target.value)} style={{ marginBottom: 0 }} /></div>
                     <div><label>Role / Position</label><input type="text" placeholder="Software Engineering Intern" value={item.title} onChange={e => update('title', e.target.value)} style={{ marginBottom: 0 }} /></div>
                     <div><label>Start Date</label><input type="text" placeholder="05 2023" value={item.start_date} onChange={e => update('start_date', e.target.value)} style={{ marginBottom: 0 }} /></div>
@@ -322,7 +322,7 @@ const ResumeEditor = () => {
               emptyLabel="No extracurricular activities yet."
               renderItem={(item, idx, update) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div className="grid-split-2">
                     <div><label>Organization Name</label><input type="text" placeholder="Google Developer Student Club" value={item.organization} onChange={e => update('organization', e.target.value)} style={{ marginBottom: 0 }} /></div>
                     <div><label>Role</label><input type="text" placeholder="Technical Lead" value={item.role} onChange={e => update('role', e.target.value)} style={{ marginBottom: 0 }} /></div>
                     <div><label>Start Date</label><input type="text" placeholder="08 2022" value={item.start_date} onChange={e => update('start_date', e.target.value)} style={{ marginBottom: 0 }} /></div>
@@ -355,7 +355,7 @@ const ResumeEditor = () => {
               addLabel="Add Certification"
               emptyLabel="No certifications added yet."
               renderItem={(item, idx, update) => (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div className="grid-split-2">
                   <div><label>Certification Name</label><input type="text" placeholder="AWS Solutions Architect" value={item.name} onChange={e => update('name', e.target.value)} style={{ marginBottom: 0 }} /></div>
                   <div><label>Platform / Provider</label><input type="text" placeholder="Amazon Web Services" value={item.issuer} onChange={e => update('issuer', e.target.value)} style={{ marginBottom: 0 }} /></div>
                   <div><label>Completion Year</label><input type="text" placeholder="2023" value={item.date} onChange={e => update('date', e.target.value)} style={{ marginBottom: 0 }} /></div>
@@ -412,7 +412,7 @@ const ResumeEditor = () => {
               <div style={{ height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: `${(completedCount / totalSteps) * 100}%`, height: '100%', background: completedCount >= 7 ? 'var(--success)' : 'linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))', borderRadius: '4px', transition: 'width 0.5s ease' }} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '16px' }}>
+              <div className="grid-form-3" style={{ marginTop: '16px' }}>
                 {STEPS.slice(0, -1).map((step, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: completionMap[idx] ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)', fontSize: '0.85rem' }}>
                     {completionMap[idx] ? <CheckCircle2 size={14} color="var(--success)" /> : <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid var(--warning)' }} />}
@@ -437,7 +437,7 @@ const ResumeEditor = () => {
             {/* Quick preview summary */}
             <div style={{ background: 'var(--bg-secondary)', borderRadius: '16px', padding: '24px', border: '1px solid var(--border-color)', marginBottom: '24px' }}>
               <h4 style={{ marginBottom: '16px' }}>Resume Summary</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.9rem' }}>
+              <div className="grid-split-2" style={{ fontSize: '0.9rem' }}>
                 <div><span style={{ color: 'var(--text-secondary)' }}>Name:</span> <strong>{p.full_name || '—'}</strong></div>
                 <div><span style={{ color: 'var(--text-secondary)' }}>Email:</span> {p.email || '—'}</div>
                 <div><span style={{ color: 'var(--text-secondary)' }}>Education:</span> {resume.education?.length || 0} entries</div>

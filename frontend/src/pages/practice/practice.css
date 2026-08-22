@@ -670,3 +670,50 @@
 .pr-status-Accepted { color: var(--pr-easy); }
 .pr-status-Error { color: var(--pr-danger); }
 .pr-status-Pending { color: var(--pr-warning); }
+
+/* --- Mobile Responsiveness for Practice Module --- */
+@media (max-width: 992px) {
+  .pr-dashboard-container {
+    padding: 1rem;
+    height: auto;
+    overflow-y: visible;
+  }
+  
+  .pr-dashboard-layout {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .pr-stats-section {
+    min-width: 100%;
+  }
+
+  .pr-workspace-container {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 64px);
+  }
+
+  .pr-pane {
+    flex: none;
+    min-height: 500px;
+  }
+
+  .pr-pane.left {
+    border-right: none;
+    border-bottom: 2px solid var(--pr-border-color);
+  }
+
+  .pr-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pr-search-box {
+    max-width: 100%;
+  }
+
+  .pr-filters {
+    justify-content: space-between;
+  }
+}

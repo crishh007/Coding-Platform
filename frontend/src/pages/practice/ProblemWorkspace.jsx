@@ -741,7 +741,7 @@ export default function ProblemWorkspace() {
                 </div>
 
                 {submitResult.status === 'Accepted' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div className="grid-split-2" style={{ marginBottom: '1.5rem' }}>
                     {[
                       { label: 'Runtime', value: `${submitResult.timeMs}ms` },
                       { label: 'Test Cases', value: `${submitResult.passed}/${submitResult.total}` },
