@@ -13,8 +13,6 @@ import {
   Users,
 
   Terminal,
-  Sun,
-  Moon,
   ChevronDown,
   BookOpen,
   GraduationCap,
@@ -68,12 +66,7 @@ export default function Layout({ children }) {
       .catch(() => setServerOnline(false));
   }, []);
 
-  const handleToggleTheme = () => {
-    toggleTheme();
-    showToast(`Switched Theme`);
-  };
-
-  // Hidden developer keyboard shortcut to unlock (Ctrl + Alt + A)
+  // Developer keyboard shortcut to unlock (Ctrl + Alt + A)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'a') {
@@ -354,15 +347,6 @@ export default function Layout({ children }) {
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
-
-            {/* Theme Toggle */}
-            <button 
-              className="pr-btn-icon" 
-              onClick={handleToggleTheme}
-              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
 
             {/* Conditional Glowing Admin Toggle */}
             {toggleUnlocked && (

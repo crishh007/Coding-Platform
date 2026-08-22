@@ -3,7 +3,8 @@ import React, { createContext, useState, useEffect } from 'react';
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => localStorage.getItem('skillsync_theme') || 'dark');
+  // Hardcode dark mode and ignore local storage
+  const theme = 'dark';
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -11,7 +12,7 @@ export const ThemeProvider = ({ children }) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    // Disabled functionality since we are dark mode only
   };
 
   return (
