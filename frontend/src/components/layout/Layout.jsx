@@ -18,7 +18,9 @@ import {
   ChevronDown,
   BookOpen,
   GraduationCap,
-  Target
+  Target,
+  Menu,
+  X
 } from 'lucide-react';
 import client from '../../api/client';
 
@@ -39,6 +41,14 @@ export default function Layout({ children }) {
   
   // Profile dropdown state
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const showToast = (message) => {
     setToastMessage(message);
@@ -169,7 +179,7 @@ export default function Layout({ children }) {
           </div>
 
           {/* Center: Navigation Links */}
-          <nav style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '0.25rem', zIndex: 10 }}>
+          <nav className="desktop-nav">
             {navItems.map((item) => {
               const Icon = item.icon;
               const hasSubItems = !!item.subItems;
@@ -335,7 +345,14 @@ export default function Layout({ children }) {
           
           {/* Right Side: Avatar, and Admin Mode toggle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            {/* Streak indicator badge */}
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
 
 
             {/* Theme Toggle */}
@@ -509,6 +526,47 @@ export default function Layout({ children }) {
             </div>
           </div>
         </header>
+
+        {/* Mobile Navigation Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="mobile-nav-menu">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const hasSubItems = !!item.subItems;
+              
+              let isActive = item.path === '/' ? location.pathname === '/' : (hasSubItems ? item.subItems.some(sub => location.pathname.startsWith(sub.path.split('?')[0])) : location.pathname.startsWith(item.path));
+
+              return (
+                <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {hasSubItems ? (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                        <Icon size={18} />
+                        <span>{item.label}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingLeft: '1.5rem' }}>
+                        {item.subItems.map(sub => {
+                          const [base] = sub.path.split('?');
+                          const isSubActive = location.pathname.startsWith(base);
+                          return (
+                            <Link key={sub.label} to={sub.path} style={{ color: isSubActive ? 'var(--primary)' : 'var(--text-main)', textDecoration: 'none' }}>
+                              {sub.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <Link to={item.path} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isActive ? 'var(--primary)' : 'var(--text-main)', textDecoration: 'none', fontWeight: 600 }}>
+                      <Icon size={18} />
+                      <span>{item.label}</span>
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Scrollable Layout Body */}
         <div className="content-body animate-fade-in" style={{ flex: 1, overflowY: 'auto' }}>

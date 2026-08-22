@@ -440,11 +440,7 @@ export default function Dashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '0 0.5rem 2rem 0.5rem' }}>
       
       {/* Main content grid */}
-      <div className="dashboard-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: '2.3fr 1fr',
-        gap: '1.5rem'
-      }}>
+      <div className="dashboard-grid dashboard-layout">
         
         {/* Left main column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -720,7 +716,7 @@ export default function Dashboard() {
             <LearningChart history={problemStats.history} />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "20px" }}>
+          <div className="charts-grid">
             <ActivityHeatmap history={problemStats.history} />
             <LanguagePieChart history={problemStats.history} />
           </div>
